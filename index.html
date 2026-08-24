@@ -361,19 +361,19 @@ const LISTINO_DEF = [
   {cod:"LV-TAGLIO",cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a misura del pezzo", costo:0.80},
 
   /* ================= ACCESSORI E FERRAMENTA: prezzo a pezzo ================= */
-  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø100", costo:3.20},
-  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø120", costo:3.60},
-  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø140", costo:4.10},
-  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, inox", costo:9.80},
-  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, inox", costo:11.20},
-  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, inox", costo:12.90},
+  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø100", costo:3.20},
+  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø120", costo:3.60},
+  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø140", costo:4.10},
+  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, zincata", costo:9.80},
+  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, zincata", costo:11.20},
+  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, zincata", costo:12.90},
   {cod:"SF-T100", cat:"Ferramenta", forma:"F", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 con fittone da cementare", costo:12.40},
   {cod:"SF-T120", cat:"Ferramenta", forma:"F", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 con fittone da cementare", costo:14.10},
   {cod:"SF-T140", cat:"Ferramenta", forma:"F", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 con fittone da cementare", costo:16.30},
   {cod:"TF-CHIM",  cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Tassello chimico + barra per staffa (a cura del posatore)", costo:2.80},
-  {cod:"VT-8X120", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 8x120", costo:0.42},
-  {cod:"VT-6X80",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 6x80", costo:0.21},
-  {cod:"VT-5X50",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 5x50", costo:0.12},
+  {cod:"VT-8X120", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 8x120", costo:0.42},
+  {cod:"VT-6X80",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 6x80", costo:0.21},
+  {cod:"VT-5X50",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 5x50", costo:0.12},
 
   /* ================= POSA E OPERE EDILI ================= */
   {cod:"PL-CLS",    cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Calcestruzzo per plinto montante", costo:7.50},
@@ -412,7 +412,7 @@ const LAYOUT = [
 const FISSAGGI = {
   murato:    {nome:"Montante murato",       desc:"Scavo, palo interrato e getto di cls attorno",     interrato:true},
   infisso:   {nome:"Montante infisso",      desc:"Palo puntato e battuto nel terreno con battipalo", interrato:true},
-  bicchiere: {nome:"Staffa da tassellare",  desc:"Bicchiere in acciaio inox tassellato su plinto o pavimentazione esistente", interrato:false},
+  bicchiere: {nome:"Staffa da tassellare",  desc:"Bicchiere in acciaio zincato tassellato su plinto o pavimentazione esistente", interrato:false},
   fittone:   {nome:"Staffa a fittone",      desc:"Bicchiere con fittone cementato nel terreno",      interrato:false}
 };
 
@@ -620,17 +620,20 @@ function disegna(c, opt){
   const W = mini? 640 : 1000;
   const mTop = mini? 12 : 52;
   const mBot = mini? 14 : 78;
-  const mLat = mini? 30 : 92;
+  /* margini asimmetrici: a destra serve spazio per la quota dell'altezza,
+     altrimenti il testo "xxx cm / fuori terra" esce dal riquadro */
+  const mSx = mini? 30 : 58;
+  const mDx = mini? 30 : 168;
   const sopra = hF + staffaAlta + 0.10;                    // m sopra il terreno
   const sotto = Math.max(interro, fittone, 0.22);          // m sotto il terreno
   /* la scala riempie la larghezza; l'altezza del foglio segue il disegno,
      così non resta la fascia vuota sotto la staccionata */
-  let scala = (W - mLat*2) / (campate*inter);
+  let scala = (W - mSx - mDx) / (campate*inter);
   const maxH = mini? 205 : 520;
   if(mTop + (sopra+sotto)*scala + mBot > maxH) scala = (maxH - mTop - mBot)/(sopra+sotto);
   const H = Math.round(mTop + (sopra+sotto)*scala + mBot);
   const larg = campate*inter*scala;
-  const x0 = (W - larg)/2;
+  const x0 = mSx + (W - mSx - mDx - larg)/2;
   const suolo = mTop + sopra*scala;
   const px = m => x0 + m*scala;
   const py = m => suolo - m*scala;
@@ -819,7 +822,8 @@ function disegna(c, opt){
   s += `<text x="${F(xQ+10)}" y="${F((yTop+suolo)/2+13)}" fill="#5A6773" font-family="Inter,sans-serif" font-size="11.5">fuori terra</text>`;
   if(interro>0){
     s += `<line x1="${F(xQ)}" y1="${F(suolo)}" x2="${F(xQ)}" y2="${F(suolo+interro*scala)}" stroke="#14568F" stroke-width="1.2" marker-start="${U('fr')}" marker-end="${U('fr')}"/>`;
-    s += `<text x="${F(xQ+10)}" y="${F(suolo+interro*scala/2+4)}" fill="#14568F" font-family="IBM Plex Mono,monospace" font-size="13">${num(interro*100,0)} cm interrati</text>`;
+    s += `<text x="${F(xQ+10)}" y="${F(suolo+interro*scala/2-1)}" fill="#14568F" font-family="IBM Plex Mono,monospace" font-size="13">${num(interro*100,0)} cm</text>`;
+    s += `<text x="${F(xQ+10)}" y="${F(suolo+interro*scala/2+14)}" fill="#5A6773" font-family="Inter,sans-serif" font-size="11">interrati</text>`;
   }
 
   /* ---- richiami numerati: niente frecce che si accavallano ---- */
@@ -837,7 +841,7 @@ function disegna(c, opt){
       (c.corrimanoForma==="M"?"Mezzo palo Ø":"Tondo Ø")+c.corrimanoDiam+
       (R2.sc.corrimano? " · barre da "+R2.sc.corrimano.lung+" cm ("+R2.sc.corrimano.moduli+(R2.sc.corrimano.moduli===1?" campata":" campate")+" cad.)" : ""));
     if(c.fascetta) s += bollo(xs[2], yTop-wCm*0.5-6, "Fascetta a U",
-      "Inox sopra il corrimano"+(R2.faVoce? " · "+R2.faVoce.cod : ""));
+      "Zincata sopra il corrimano"+(R2.faVoce? " · "+R2.faVoce.cod : ""));
   }
   s += bollo(xs[1], yBaseP-hF*scala*0.62, "Montante",
     (c.montanteForma==="Q"?"Quadro ":"Tondo Ø")+c.montanteDiam+" · pezzo "+num(geo.tot*100,0)+" cm"+
@@ -1388,10 +1392,10 @@ function renderDocumento(){
     (conf.obliquoForma==="M"? "in mezzo palo" : "tonde")+" Ø "+(conf.obliquoDiam||conf.correnteDiam)+" cm");
   if(L.stecche && r.sc.stecche) carat.push(pz(Math.floor(conf.ml/(conf.passoStecche||0.12)),"stecca verticale","stecche verticali")+
     " tonde Ø "+conf.steccaDiam+" cm, poste a passo "+num((conf.passoStecche||0.12)*100,0)+" cm");
-  if(L.corrimano && conf.fascetta && r.faVoce) carat.push(pz(r.montanti,"fascetta a U","fascette a U")+" in acciaio inox");
-  if(r.staffa) carat.push(pz(r.montanti,"staffa","staffe")+" in acciaio inox "+
+  if(L.corrimano && conf.fascetta && r.faVoce) carat.push(pz(r.montanti,"fascetta a U","fascette a U")+" in acciaio zincato");
+  if(r.staffa) carat.push(pz(r.montanti,"staffa","staffe")+" in acciaio zincato "+
     (conf.fissaggio==="fittone"? "con fittone da cementare" : "a bicchiere da tassellare"));
-  carat.push("Viteria inox per l'assemblaggio");
+  carat.push("Viteria in acciaio zincato per l'assemblaggio");
 
   const voci=[];
   voci.push({d:"Fornitura del materiale come da descrizione, franco cantiere", q:num(conf.ml,0)+" ml", p:r.prezzoMat});
