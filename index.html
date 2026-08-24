@@ -642,11 +642,17 @@ function disegna(c, opt){
   const wOb  = Math.max(3.5, (Number(c.obliquoDiam)||8)/100*scala) * ((c.obliquoForma||"M")==="M"? 0.62 : 1);
   const bordo = "#6B5430";
   const F = n => (isFinite(n)? n : 0).toFixed(1);
+  /* Gli id di gradienti e pattern devono essere UNICI per ogni SVG della pagina:
+     con id ripetuti il browser risolve il riferimento sul primo, spesso dentro una
+     sezione nascosta, e i pali restano senza riempimento (solo i contorni). */
+  const uid = "g" + (disegna.seq = (disegna.seq||0) + 1);
+  const U = n => "url(#" + n + "-" + uid + ")";
   let s = "";
 
   /* ---- elementi in legno resi come cilindri ---- */
   const membV=(x,yT,yB,w,cap)=>{
-    let o=`<rect x="${F(x-w/2)}" y="${F(yT)}" width="${F(w)}" height="${F(Math.max(yB-yT,1))}" fill="url(#lgV)" stroke="${bordo}" stroke-width="1"/>`;
+    let o=`<rect x="${F(x-w/2)}" y="${F(yT)}" width="${F(w)}" height="${F(Math.max(yB-yT,1))}" fill="#B08C4F"/>`;
+    o+=`<rect x="${F(x-w/2)}" y="${F(yT)}" width="${F(w)}" height="${F(Math.max(yB-yT,1))}" fill="${U('lgV')}" stroke="${bordo}" stroke-width="1"/>`;
     if(cap==="tondo")  o+=`<ellipse cx="${F(x)}" cy="${F(yT)}" rx="${F(w/2)}" ry="${F(Math.max(w*0.17,1.5))}" fill="#D2AE73" stroke="${bordo}" stroke-width="1"/>`;
     if(cap==="quadro") o+=`<rect x="${F(x-w/2)}" y="${F(yT-2.5)}" width="${F(w)}" height="4" fill="#D2AE73" stroke="${bordo}" stroke-width="1"/>`;
     if(cap==="sella")  o+=`<path d="M${F(x-w/2)},${F(yT-1)} Q${F(x)},${F(yT+w*0.62)} ${F(x+w/2)},${F(yT-1)} Z" fill="#FFFFFF" stroke="${bordo}" stroke-width="1"/>`;
@@ -654,11 +660,14 @@ function disegna(c, opt){
     return o;
   };
   const membH=(xa,xb,yC,w)=>
-    `<rect x="${F(xa)}" y="${F(yC-w/2)}" width="${F(Math.max(xb-xa,1))}" height="${F(w)}" rx="${F(w/2)}" fill="url(#lgH)" stroke="${bordo}" stroke-width="1"/>`+
+    `<rect x="${F(xa)}" y="${F(yC-w/2)}" width="${F(Math.max(xb-xa,1))}" height="${F(w)}" rx="${F(w/2)}" fill="#B08C4F"/>`+
+    `<rect x="${F(xa)}" y="${F(yC-w/2)}" width="${F(Math.max(xb-xa,1))}" height="${F(w)}" rx="${F(w/2)}" fill="${U('lgH')}" stroke="${bordo}" stroke-width="1"/>`+
     `<line x1="${F(xa+4)}" y1="${F(yC-w*0.2)}" x2="${F(xb-4)}" y2="${F(yC-w*0.2)}" stroke="#E0C48F" stroke-width="${F(Math.max(w*0.14,.8))}" opacity=".5"/>`;
   const membHm=(xa,xb,yBase,w)=>{            // mezzo palo: faccia piana in appoggio, dorso tondo
     const hh=Math.max(w*0.55,3), r=hh*0.55;
-    return `<path d="M${F(xa)},${F(yBase)} L${F(xa)},${F(yBase-hh+r)} Q${F(xa)},${F(yBase-hh)} ${F(xa+r)},${F(yBase-hh)} L${F(xb-r)},${F(yBase-hh)} Q${F(xb)},${F(yBase-hh)} ${F(xb)},${F(yBase-hh+r)} L${F(xb)},${F(yBase)} Z" fill="url(#lgM)" stroke="${bordo}" stroke-width="1"/>`+
+    const sagoma = `M${F(xa)},${F(yBase)} L${F(xa)},${F(yBase-hh+r)} Q${F(xa)},${F(yBase-hh)} ${F(xa+r)},${F(yBase-hh)} L${F(xb-r)},${F(yBase-hh)} Q${F(xb)},${F(yBase-hh)} ${F(xb)},${F(yBase-hh+r)} L${F(xb)},${F(yBase)} Z`;
+    return `<path d="${sagoma}" fill="#B08C4F"/>`+
+      `<path d="${sagoma}" fill="${U('lgM')}" stroke="${bordo}" stroke-width="1"/>`+
       `<line x1="${F(xa+4)}" y1="${F(yBase-hh*0.72)}" x2="${F(xb-4)}" y2="${F(yBase-hh*0.72)}" stroke="#E0C48F" stroke-width="${F(Math.max(hh*0.16,.8))}" opacity=".5"/>`+
       `<line x1="${F(xa)}" y1="${F(yBase)}" x2="${F(xb)}" y2="${F(yBase)}" stroke="${bordo}" stroke-width="1"/>`;
   };
@@ -670,18 +679,18 @@ function disegna(c, opt){
   const fascettaU=(x,yC,wRail)=>{
     const t  = Math.max(4.5, wPal*0.44);
     const gi = Math.max(9, 0.09*scala);                 // quanto scende sul montante
-    return `<rect x="${F(x-t/2)}" y="${F(yC-wRail/2-3)}" width="${F(t)}" height="${F(wRail+3+gi)}" rx="${F(Math.min(3,t/2))}" fill="url(#mtl)" stroke="#59626A" stroke-width="1"/>`+
+    return `<rect x="${F(x-t/2)}" y="${F(yC-wRail/2-3)}" width="${F(t)}" height="${F(wRail+3+gi)}" rx="${F(Math.min(3,t/2))}" fill="${U('mtl')}" stroke="#59626A" stroke-width="1"/>`+
            `<circle cx="${F(x)}" cy="${F(yC+wRail/2+gi*0.55)}" r="${F(Math.max(1.5,t*0.17))}" fill="#454D54"/>`;
   };
   const plinto=(x,h)=>{
     if(h<=0) return "";
     const wp = Math.max(wPal*2.3, 13);
-    return `<path d="M${F(x-wp/2)},${F(suolo)} L${F(x+wp/2)},${F(suolo)} L${F(x+wp*0.34)},${F(suolo+h)} L${F(x-wp*0.34)},${F(suolo+h)} Z" fill="url(#cls)" stroke="#9AA1A7" stroke-width="1"/>`;
+    return `<path d="M${F(x-wp/2)},${F(suolo)} L${F(x+wp/2)},${F(suolo)} L${F(x+wp*0.34)},${F(suolo+h)} L${F(x-wp*0.34)},${F(suolo+h)} Z" fill="${U('cls')}" stroke="#9AA1A7" stroke-width="1"/>`;
   };
 
   /* ---- terreno ---- */
   const fineTerreno = suolo + sotto*scala;
-  s += `<rect x="0" y="${F(suolo)}" width="${W}" height="${F(fineTerreno-suolo)}" fill="url(#terreno)"/>`;
+  s += `<rect x="0" y="${F(suolo)}" width="${W}" height="${F(fineTerreno-suolo)}" fill="${U('terreno')}"/>`;
   s += `<line x1="0" y1="${F(fineTerreno)}" x2="${W}" y2="${F(fineTerreno)}" stroke="#CBBB99" stroke-width="1"/>`;
 
   const xs=[]; for(let i=0;i<=campate;i++) xs.push(px(i*inter));
@@ -760,13 +769,13 @@ function disegna(c, opt){
     s += membV(x, yTop, yBaseP, wPal, cap);
     if(staffaAlta>0){
       const hb=staffaAlta*scala;
-      s += `<path d="M${F(x-wPal/2-3)},${F(suolo-hb)} L${F(x+wPal/2+3)},${F(suolo-hb)} L${F(x+wPal/2+3)},${F(suolo)} L${F(x-wPal/2-3)},${F(suolo)} Z" fill="url(#mtl)" stroke="#59626A" stroke-width="1.1"/>`;
+      s += `<path d="M${F(x-wPal/2-3)},${F(suolo-hb)} L${F(x+wPal/2+3)},${F(suolo-hb)} L${F(x+wPal/2+3)},${F(suolo)} L${F(x-wPal/2-3)},${F(suolo)} Z" fill="${U('mtl')}" stroke="#59626A" stroke-width="1.1"/>`;
       s += `<circle cx="${F(x)}" cy="${F(suolo-hb*0.45)}" r="${F(Math.max(1.6,wPal*0.1))}" fill="#454D54"/>`;
       if(c.fissaggio==="bicchiere"){
-        s += `<rect x="${F(x-wPal/2-15)}" y="${F(suolo-6)}" width="${F(wPal+30)}" height="6" fill="url(#mtl)" stroke="#59626A" stroke-width="1"/>`;
+        s += `<rect x="${F(x-wPal/2-15)}" y="${F(suolo-6)}" width="${F(wPal+30)}" height="6" fill="${U('mtl')}" stroke="#59626A" stroke-width="1"/>`;
         s += `<circle cx="${F(x-wPal/2-10)}" cy="${F(suolo-3)}" r="2" fill="#454D54"/><circle cx="${F(x+wPal/2+10)}" cy="${F(suolo-3)}" r="2" fill="#454D54"/>`;
       } else {
-        s += `<rect x="${F(x-3.5)}" y="${F(suolo)}" width="7" height="${F(fittone*scala)}" fill="url(#mtl)" stroke="#59626A" stroke-width="1"/>`;
+        s += `<rect x="${F(x-3.5)}" y="${F(suolo)}" width="7" height="${F(fittone*scala)}" fill="${U('mtl')}" stroke="#59626A" stroke-width="1"/>`;
         s += `<path d="M${F(x-3.5)},${F(suolo+fittone*scala)} L${F(x+3.5)},${F(suolo+fittone*scala)} L${F(x)},${F(suolo+fittone*scala+9)} Z" fill="#7B848B" stroke="#59626A" stroke-width="1"/>`;
       }
     }
@@ -790,13 +799,13 @@ function disegna(c, opt){
     s += `<path d="M${x},${F(suolo)} l3,-6 M${x+4},${F(suolo)} l0,-7 M${x+8},${F(suolo)} l-2,-5" stroke="#8FA06A" stroke-width="1.3" fill="none" opacity=".8"/>`;
   }
 
-  if(mini) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${defs()}${s}</svg>`;
+  if(mini) return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${defs(uid)}${s}</svg>`;
 
   /* ---- quote ---- */
   const yQ = fineTerreno + 30;
   s += `<line x1="${F(xs[0])}" y1="${F(suolo+4)}" x2="${F(xs[0])}" y2="${F(yQ+8)}" stroke="#9FB4C7" stroke-width="1"/>`;
   s += `<line x1="${F(xs[1])}" y1="${F(suolo+4)}" x2="${F(xs[1])}" y2="${F(yQ+8)}" stroke="#9FB4C7" stroke-width="1"/>`;
-  s += `<line x1="${F(xs[0])}" y1="${F(yQ)}" x2="${F(xs[1])}" y2="${F(yQ)}" stroke="#14568F" stroke-width="1.2" marker-start="url(#fr)" marker-end="url(#fr)"/>`;
+  s += `<line x1="${F(xs[0])}" y1="${F(yQ)}" x2="${F(xs[1])}" y2="${F(yQ)}" stroke="#14568F" stroke-width="1.2" marker-start="${U('fr')}" marker-end="${U('fr')}"/>`;
   const xm2=(xs[0]+xs[1])/2;
   s += `<rect x="${F(xm2-40)}" y="${F(yQ-11)}" width="80" height="20" fill="#fff"/>`;
   s += `<text x="${F(xm2)}" y="${F(yQ+5)}" fill="#14568F" font-family="IBM Plex Mono,monospace" font-size="14" text-anchor="middle">${num(inter*100,0)} cm</text>`;
@@ -805,11 +814,11 @@ function disegna(c, opt){
   const xQ = xB + 46;
   s += `<line x1="${F(xB)}" y1="${F(yTop)}" x2="${F(xQ+8)}" y2="${F(yTop)}" stroke="#9FB4C7" stroke-width="1"/>`;
   s += `<line x1="${F(xB)}" y1="${F(suolo)}" x2="${F(xQ+8)}" y2="${F(suolo)}" stroke="#9FB4C7" stroke-width="1"/>`;
-  s += `<line x1="${F(xQ)}" y1="${F(yTop)}" x2="${F(xQ)}" y2="${F(suolo)}" stroke="#14568F" stroke-width="1.2" marker-start="url(#fr)" marker-end="url(#fr)"/>`;
+  s += `<line x1="${F(xQ)}" y1="${F(yTop)}" x2="${F(xQ)}" y2="${F(suolo)}" stroke="#14568F" stroke-width="1.2" marker-start="${U('fr')}" marker-end="${U('fr')}"/>`;
   s += `<text x="${F(xQ+10)}" y="${F((yTop+suolo)/2-4)}" fill="#14568F" font-family="IBM Plex Mono,monospace" font-size="14">${num(hF*100,0)} cm</text>`;
   s += `<text x="${F(xQ+10)}" y="${F((yTop+suolo)/2+13)}" fill="#5A6773" font-family="Inter,sans-serif" font-size="11.5">fuori terra</text>`;
   if(interro>0){
-    s += `<line x1="${F(xQ)}" y1="${F(suolo)}" x2="${F(xQ)}" y2="${F(suolo+interro*scala)}" stroke="#14568F" stroke-width="1.2" marker-start="url(#fr)" marker-end="url(#fr)"/>`;
+    s += `<line x1="${F(xQ)}" y1="${F(suolo)}" x2="${F(xQ)}" y2="${F(suolo+interro*scala)}" stroke="#14568F" stroke-width="1.2" marker-start="${U('fr')}" marker-end="${U('fr')}"/>`;
     s += `<text x="${F(xQ+10)}" y="${F(suolo+interro*scala/2+4)}" fill="#14568F" font-family="IBM Plex Mono,monospace" font-size="13">${num(interro*100,0)} cm interrati</text>`;
   }
 
@@ -851,34 +860,36 @@ function disegna(c, opt){
   s += `<text x="${F(x0)}" y="24" font-family="Barlow Condensed,sans-serif" font-size="21" font-weight="600" fill="#0B3A63" letter-spacing=".04em">${esc(L.nome.toUpperCase())} — VISTA LATERALE</text>`;
   s += `<text x="${F(x0)}" y="42" font-family="Inter,sans-serif" font-size="12" fill="#5A6773">Schema non in scala · quote in centimetri</text>`;
 
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${defs()}${s}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${defs(uid)}${s}</svg>`;
 }
-function defs(){
+function defs(uid){
   return `<defs>
-    <linearGradient id="lgV" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#8A6C3C"/><stop offset=".26" stop-color="#C8A469"/>
-      <stop offset=".58" stop-color="#AE8A4E"/><stop offset="1" stop-color="#7A5F34"/>
+    <linearGradient id="lgV-${uid}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8B6C3B"/><stop offset=".22" stop-color="#D3B076"/>
+      <stop offset=".52" stop-color="#B18E51"/><stop offset=".82" stop-color="#8E6F3D"/>
+      <stop offset="1" stop-color="#725730"/>
     </linearGradient>
-    <linearGradient id="lgH" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8A6C3C"/><stop offset=".26" stop-color="#C8A469"/>
-      <stop offset=".58" stop-color="#AE8A4E"/><stop offset="1" stop-color="#7A5F34"/>
+    <linearGradient id="lgH-${uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8B6C3B"/><stop offset=".22" stop-color="#D3B076"/>
+      <stop offset=".52" stop-color="#B18E51"/><stop offset=".82" stop-color="#8E6F3D"/>
+      <stop offset="1" stop-color="#725730"/>
     </linearGradient>
-    <linearGradient id="lgM" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="lgM-${uid}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#D2AE73"/><stop offset=".45" stop-color="#B58F52"/><stop offset="1" stop-color="#7A5F34"/>
     </linearGradient>
-    <linearGradient id="mtl" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="mtl-${uid}" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#6E777E"/><stop offset=".32" stop-color="#C6CDD2"/>
       <stop offset=".68" stop-color="#98A1A8"/><stop offset="1" stop-color="#6E777E"/>
     </linearGradient>
-    <pattern id="cls" width="7" height="7" patternUnits="userSpaceOnUse">
+    <pattern id="cls-${uid}" width="7" height="7" patternUnits="userSpaceOnUse">
       <rect width="7" height="7" fill="#D3D7DA"/>
       <circle cx="2" cy="2" r="1" fill="#B6BCC1"/><circle cx="5.5" cy="5" r="1.3" fill="#B6BCC1"/>
     </pattern>
-    <pattern id="terreno" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+    <pattern id="terreno-${uid}" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
       <rect width="14" height="14" fill="#EFE9DC"/><line x1="0" y1="0" x2="0" y2="14" stroke="#CBBB99" stroke-width="1.6"/>
     </pattern>
-    <marker id="fr" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto"><path d="M1,4.5 L8,1.6 L8,7.4 Z" fill="#14568F"/></marker>
-    <marker id="pallino" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5"><circle cx="3.5" cy="3.5" r="2.6" fill="#0B3A63"/></marker>
+    <marker id="fr-${uid}" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto"><path d="M1,4.5 L8,1.6 L8,7.4 Z" fill="#14568F"/></marker>
+    <marker id="pallino-${uid}" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5"><circle cx="3.5" cy="3.5" r="2.6" fill="#0B3A63"/></marker>
   </defs>`;
 }
 
@@ -2310,6 +2321,38 @@ function renderTestata(){
   }
   ut.innerHTML=`<span>${esc((sess.email||"").split("@")[0])}</span>
     <button class="esci" onclick="esci()" title="Esci">Esci</button>`;
+}
+
+/* =====================================================================
+   DIALOGO DI CONFERMA — nell'artefatto e in molti browser confirm()/prompt()
+   sono bloccati, quindi le conferme passano da questa finestra interna.
+   ===================================================================== */
+let azioneModale=null;
+function chiudiModale(){ azioneModale=null; document.getElementById("modale").classList.add("hidden"); }
+function confermaModale(){ const f=azioneModale; chiudiModale(); if(f) f(); }
+function chiedi(titolo, testo, onOk, etichetta){
+  azioneModale = onOk;
+  const m=document.getElementById("modale");
+  m.innerHTML = `<div class="modale-box">
+    <h3>${esc(titolo)}</h3><p>${esc(testo)}</p>
+    <div class="modale-az">
+      <button class="btn btn-g" onclick="chiudiModale()">Annulla</button>
+      <button class="btn btn-d" onclick="confermaModale()">${esc(etichetta||"Elimina")}</button>
+    </div></div>`;
+  m.classList.remove("hidden");
+}
+function chiediCategoria(){
+  const cats = prodotto==="casette" ? ["Casette","Optional","Posa"] : ["Legname","Lavorazioni","Ferramenta","Posa"];
+  const m=document.getElementById("modale");
+  m.innerHTML = `<div class="modale-box">
+    <h3>Nuovo articolo</h3><p>Scegli la categoria: potrai poi compilare codice, descrizione e prezzo direttamente in tabella.</p>
+    <label>Categoria</label>
+    <select id="nuova-cat">${cats.map(c=>`<option>${c}</option>`).join("")}</select>
+    <div class="modale-az" style="margin-top:18px">
+      <button class="btn btn-g" onclick="chiudiModale()">Annulla</button>
+      <button class="btn btn-p" onclick="creaVoce(document.getElementById('nuova-cat').value)">Aggiungi</button>
+    </div></div>`;
+  m.classList.remove("hidden");
 }
 
 let vistaCorrente="login";
