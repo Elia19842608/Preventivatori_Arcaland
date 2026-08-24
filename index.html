@@ -361,16 +361,16 @@ const LISTINO_DEF = [
   {cod:"LV-TAGLIO",cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a misura del pezzo", costo:0.80},
 
   /* ================= ACCESSORI E FERRAMENTA: prezzo a pezzo ================= */
-  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø100", costo:3.20},
-  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø120", costo:3.60},
-  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø140", costo:4.10},
-  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, zincata", costo:9.80},
-  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, zincata", costo:11.20},
-  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, zincata", costo:12.90},
+  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø100", costo:3.20},
+  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø120", costo:3.60},
+  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio inox Ø140", costo:4.10},
+  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, inox", costo:9.80},
+  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, inox", costo:11.20},
+  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, inox", costo:12.90},
   {cod:"SF-T100", cat:"Ferramenta", forma:"F", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 con fittone da cementare", costo:12.40},
   {cod:"SF-T120", cat:"Ferramenta", forma:"F", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 con fittone da cementare", costo:14.10},
   {cod:"SF-T140", cat:"Ferramenta", forma:"F", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 con fittone da cementare", costo:16.30},
-  {cod:"TF-CHIM",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Tassello chimico + barra per staffa", costo:2.80},
+  {cod:"TF-CHIM",  cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Tassello chimico + barra per staffa (a cura del posatore)", costo:2.80},
   {cod:"VT-8X120", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 8x120", costo:0.42},
   {cod:"VT-6X80",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 6x80", costo:0.21},
   {cod:"VT-5X50",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP inox 5x50", costo:0.12},
@@ -412,7 +412,7 @@ const LAYOUT = [
 const FISSAGGI = {
   murato:    {nome:"Montante murato",       desc:"Scavo, palo interrato e getto di cls attorno",     interrato:true},
   infisso:   {nome:"Montante infisso",      desc:"Palo puntato e battuto nel terreno con battipalo", interrato:true},
-  bicchiere: {nome:"Staffa da tassellare",  desc:"Bicchiere in acciaio tassellato su plinto o pavimentazione esistente", interrato:false},
+  bicchiere: {nome:"Staffa da tassellare",  desc:"Bicchiere in acciaio inox tassellato su plinto o pavimentazione esistente", interrato:false},
   fittone:   {nome:"Staffa a fittone",      desc:"Bicchiere con fittone cementato nel terreno",      interrato:false}
 };
 
@@ -510,7 +510,7 @@ function calcola(c){
     staffa = trovaFerramenta(c.fissaggio==="fittone"?"F":"B", c.montanteDiam);
     if(staffa){
       add(staffa.cod, montanti);
-      if(c.fissaggio==="bicchiere") add("TF-CHIM", montanti*4, "4 tasselli per staffa");
+      if(c.fissaggio==="bicchiere"){ if(posa) add("TF-CHIM", montanti*4, "4 tasselli per staffa"); }
       else if(posa){ add("PO-SCAVO", montanti, "scavo e getto per fittone"); add("PL-CLS", montanti); }
     } else mancanti.push("staffa Ø"+c.montanteDiam);
     add("VT-8X120", montanti*2, "fissaggio palo alla staffa");
@@ -837,7 +837,7 @@ function disegna(c, opt){
       (c.corrimanoForma==="M"?"Mezzo palo Ø":"Tondo Ø")+c.corrimanoDiam+
       (R2.sc.corrimano? " · barre da "+R2.sc.corrimano.lung+" cm ("+R2.sc.corrimano.moduli+(R2.sc.corrimano.moduli===1?" campata":" campate")+" cad.)" : ""));
     if(c.fascetta) s += bollo(xs[2], yTop-wCm*0.5-6, "Fascetta a U",
-      "Zincata sopra il corrimano"+(R2.faVoce? " · "+R2.faVoce.cod : ""));
+      "Inox sopra il corrimano"+(R2.faVoce? " · "+R2.faVoce.cod : ""));
   }
   s += bollo(xs[1], yBaseP-hF*scala*0.62, "Montante",
     (c.montanteForma==="Q"?"Quadro ":"Tondo Ø")+c.montanteDiam+" · pezzo "+num(geo.tot*100,0)+" cm"+
@@ -1371,14 +1371,27 @@ function renderDocumento(){
   const el=document.getElementById("v-doc");
   const r=calcola(conf), L=r.layout, g=r.geo;
   const cm=r.sc.corrimano, co=r.sc.correnti, mo=r.sc.montante;
+  /* Elenco per il cliente: SOLO i componenti forniti con le loro quantità.
+     Nessuna lavorazione (selle, fori, tagli, incastri): sono lavorazioni interne
+     e non vanno esposte in offerta. */
   const carat=[];
-  carat.push("Montanti in pino nordico impregnato in autoclave, "+(conf.montanteForma==="Q"?"sezione quadra "+conf.montanteDiam+"x"+conf.montanteDiam:"tondi Ø "+conf.montanteDiam)+" cm, lunghezza "+num(g.tot*100,0)+" cm, posti a interasse "+num(conf.interasse*100,0)+" cm, altezza fuori terra "+num(g.hF*100,0)+" cm"+(conf.sella?", con sella di testa":"")+(conf.fori>0?", con "+conf.fori+" fori passanti":""));
-  if(L.corrimano) carat.push("Corrimano "+(conf.corrimanoForma==="M"?"in mezzo palo":"tondo")+" Ø "+conf.corrimanoDiam+" cm"+(cm?" in barre da "+cm.lung+" cm":"")+(conf.fascetta?", fissato ai montanti con fascette a U in acciaio zincato":", avvitato ai montanti"));
-  if((conf.nCorrenti||0)>0) carat.push((conf.nCorrenti===1?"Corrente orizzontale":conf.nCorrenti+" correnti orizzontali")+" "+(conf.correnteForma==="M"?"in mezzo palo":"tondi")+" Ø "+conf.correnteDiam+" cm"+(conf.fori>0?", passanti nei fori dei montanti":", avvitati in facciata"));
-  if(L.croce) carat.push("Obliqui incrociati "+(conf.obliquoForma==="M"?"in mezzo palo avvitati a fianco dei montanti":"in palo intero con taglio a fetta di salame")+" Ø "+(conf.obliquoDiam||conf.correnteDiam)+" cm"+((conf.incastro!==false||conf.obliquoForma!=="M")?", con incastro a mezzo legno nel punto di incrocio":""));
-  if(L.stecche) carat.push("Stecche verticali tonde Ø "+conf.steccaDiam+" cm poste a passo "+num((conf.passoStecche||0.12)*100,0)+" cm");
-  carat.push(FISSAGGI[conf.fissaggio].nome+": "+FISSAGGI[conf.fissaggio].desc.toLowerCase());
-  carat.push("Ferramenta di assemblaggio in acciaio zincato e viteria inox");
+  const pz = (n,s,pl) => n+" "+(n===1? s : (pl||s));
+  carat.push(pz(r.montanti,"montante","montanti")+" in pino nordico impregnato in autoclave, "+
+    (conf.montanteForma==="Q"? "sezione quadra "+conf.montanteDiam+"x"+conf.montanteDiam : "tondi Ø "+conf.montanteDiam)+
+    " cm, lunghezza "+num(g.tot*100,0)+" cm, posti a interasse "+num(conf.interasse*100,0)+" cm");
+  if(L.corrimano && cm) carat.push(pz(cm.pezzi,"corrimano","corrimano")+" "+
+    (conf.corrimanoForma==="M"? "in mezzo palo" : "tondo")+" Ø "+conf.corrimanoDiam+" cm, in barre da "+cm.lung+" cm");
+  if((conf.nCorrenti||0)>0 && co) carat.push(pz(co.pezzi,"traversa","traverse")+" "+
+    (conf.correnteForma==="M"? "in mezzo palo" : "tonde")+" Ø "+conf.correnteDiam+" cm, in barre da "+co.lung+" cm"+
+    " ("+(conf.nCorrenti===1? "una fila" : conf.nCorrenti+" file")+")");
+  if(L.croce && r.sc.obliqui) carat.push(pz(r.campate*2,"traversa obliqua","traverse oblique")+" "+
+    (conf.obliquoForma==="M"? "in mezzo palo" : "tonde")+" Ø "+(conf.obliquoDiam||conf.correnteDiam)+" cm");
+  if(L.stecche && r.sc.stecche) carat.push(pz(Math.floor(conf.ml/(conf.passoStecche||0.12)),"stecca verticale","stecche verticali")+
+    " tonde Ø "+conf.steccaDiam+" cm, poste a passo "+num((conf.passoStecche||0.12)*100,0)+" cm");
+  if(L.corrimano && conf.fascetta && r.faVoce) carat.push(pz(r.montanti,"fascetta a U","fascette a U")+" in acciaio inox");
+  if(r.staffa) carat.push(pz(r.montanti,"staffa","staffe")+" in acciaio inox "+
+    (conf.fissaggio==="fittone"? "con fittone da cementare" : "a bicchiere da tassellare"));
+  carat.push("Viteria inox per l'assemblaggio");
 
   const voci=[];
   voci.push({d:"Fornitura del materiale come da descrizione, franco cantiere", q:num(conf.ml,0)+" ml", p:r.prezzoMat});
@@ -1425,7 +1438,7 @@ function renderDocumento(){
 
     <div class="doc-dis">${disegna(conf,{})}</div>
 
-    <h2 class="doc-sez">Descrizione tecnica</h2>
+    <h2 class="doc-sez">Materiale fornito</h2>
     <ul class="doc-list">${carat.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
 
     ${piedeDoc(1,2)}
