@@ -591,7 +591,7 @@ function calcola(c){
   const mM=1-(Number(param.margineMat)||0)/100, mP=1-(Number(param.marginePosa)||0)/100, pv=1-(Number(param.provvigione)||0)/100;
   const prezzoMat = mM>0? costoMat/mM/pv : costoMat;
   const prezzoPosa= mP>0? costoPosa/mP/pv : costoPosa;
-  const trasporto = Number(c.trasporto)||0;
+  const trasporto = (c.conTrasporto===false) ? 0 : (Number(c.trasporto)||0);
   const imponibile = prezzoMat+prezzoPosa+trasporto;
   const iva = imponibile*(Number(param.iva)||0)/100;
 
@@ -945,7 +945,8 @@ function renderArchivio(){
           <div class="meta">${esc(r.layout.nome)} · interasse ${num(s.conf.interasse*100,0)} cm · h ${num(s.conf.hFuori*100,0)} cm<br>
           montante Ø${s.conf.montanteDiam} da ${num(r.geo.tot*100,0)} cm · ${r.montanti} pz su ${num(s.conf.ml,0)} ml<br>
           <span class="badge">${esc(FISSAGGI[s.conf.fissaggio].nome)}</span>
-          ${s.conf.posa===false? `<span class="badge">sola fornitura</span>`:""}</div>
+          ${s.conf.posa===false? `<span class="badge">sola fornitura</span>`:""}
+          ${s.conf.conTrasporto===false? `<span class="badge">franco sede</span>`:""}</div>
           <div class="prezzo">${eur(r.alMetro)} <small>/ ml imponibile</small></div>
           <div class="muted" style="margin-top:2px">Totale ${num(s.conf.ml,0)} ml: ${eur(r.imponibile)} + IVA</div>
         </div>
@@ -981,7 +982,8 @@ function eliminaStandard(i){
 function nuovoPreventivo(){
   conf={ layout:"L3", interasse:2, hFuori:1.0, ml:50, trasporto:0,
     montanteForma:"T", montanteDiam:12, sella:false, fori:0,
-    fissaggio:"murato", posa:true, luogoConsegna:"", trasporto:0,
+    fissaggio:"murato", posa:true, conTrasporto:true, sedeRitiro:"Reggio Emilia",
+    luogoConsegna:"", trasporto:0,
     corrimanoForma:"T", corrimanoDiam:10, fascetta:true,
     nCorrenti:2, correnteForma:"T", correnteDiam:8,
     obliquoForma:"M", obliquoDiam:8, incastro:true,
@@ -1029,14 +1031,33 @@ function renderWizard(){
         <div class="desc">Solo materiale reso in cantiere, scarico escluso a carico del cliente</div></button>
     </div>`;
     if(conf.posa===false){
+      h+=`<div class="info" style="margin-top:14px">Con la sola fornitura il preventivo esclude manodopera di posa, scavi e plinti.</div>`;
+    }
+    h+=`</fieldset>
+
+    <fieldset><legend>Trasporto</legend><div class="opzioni">
+      <button class="opz ${conf.conTrasporto!==false?"sel":""}" onclick="setConf('conTrasporto',true)" style="padding:16px">
+        <div class="nome">Trasporto compreso</div>
+        <div class="desc">Materiale reso al luogo di consegna indicato, scarico escluso</div></button>
+      <button class="opz ${conf.conTrasporto===false?"sel":""}" onclick="setConf('conTrasporto',false)" style="padding:16px">
+        <div class="nome">Trasporto escluso</div>
+        <div class="desc">Prezzi franco nostra sede, ritiro a cura del cliente</div></button>
+    </div>`;
+    if(conf.conTrasporto!==false){
       h+=`<div class="riga c2" style="margin-top:14px">
-        <div><label>Luogo di consegna</label>
-          <input value="${esc(conf.luogoConsegna||"")}" placeholder="Es. Reggio Emilia (RE)" onchange="conf.luogoConsegna=this.value;renderWizard()"></div>
-        <div><label>Trasporto in € (scarico escluso)</label>
+        <div><label>Indirizzo di consegna</label>
+          <input value="${esc(conf.luogoConsegna||"")}" placeholder="Es. Via Roma 1 — Reggio Emilia (RE)" onchange="conf.luogoConsegna=this.value;renderWizard()"></div>
+        <div><label>Prezzo del trasporto (€)</label>
           <input type="number" step="10" value="${conf.trasporto}" onchange="conf.trasporto=Number(this.value)||0;renderWizard()"></div>
       </div>
-      <div class="info">Con la sola fornitura il preventivo esclude manodopera di posa, scavi e plinti.
-      Il trasporto viene esposto a parte e in offerta compare la dicitura <strong>scarico a carico del cliente</strong>.</div>`;
+      <div class="info">In offerta il trasporto è esposto come voce a parte, con la dicitura <strong>scarico escluso, a carico del committente</strong>.</div>`;
+    } else {
+      h+=`<div style="margin-top:14px;max-width:340px"><label>Sede di ritiro</label>
+        <select onchange="setConf('sedeRitiro',this.value)">
+          <option ${conf.sedeRitiro==="Reggio Emilia"?"selected":""}>Reggio Emilia</option>
+          <option ${conf.sedeRitiro==="Porto Viro"?"selected":""}>Porto Viro</option>
+        </select></div>
+      <div class="info">In offerta comparirà: <strong>trasporto escluso, prezzi franco nostra sede di ${esc(conf.sedeRitiro||"Reggio Emilia")}</strong>.</div>`;
     }
     h+=`</fieldset>
     <fieldset><legend>Interasse tra i montanti</legend><div class="chips">`;
@@ -1046,7 +1067,6 @@ function renderWizard(){
     <fieldset><legend>Dimensioni</legend><div class="riga c3">
       <div><label>Altezza fuori terra (cm)</label><input type="number" step="5" value="${Math.round(conf.hFuori*100)}" onchange="conf.hFuori=(Number(this.value)||0)/100;renderWizard()"></div>
       <div><label>Metri lineari di riferimento</label><input type="number" step="1" value="${conf.ml}" onchange="conf.ml=Number(this.value)||0;renderWizard()"></div>
-      ${conf.posa!==false? `<div><label>Trasporto (€)</label><input type="number" step="10" value="${conf.trasporto}" onchange="conf.trasporto=Number(this.value)||0;renderWizard()"></div>`:""}
     </div></fieldset>
     <fieldset><legend>Fissaggio a terra</legend><div class="opzioni">
       ${Object.keys(FISSAGGI).map(k=>`<button class="opz ${conf.fissaggio===k?"sel":""}" onclick="setConf('fissaggio','${k}')" style="padding:16px">
@@ -1167,7 +1187,9 @@ function renderWizard(){
           <div class="r"><span>Fornitura · marg. ${param.margineMat}%</span><span>${eur(r.prezzoMat)}</span></div>
           ${r.posa? `<div class="r"><span>Posa in opera · marg. ${param.marginePosa}%</span><span>${eur(r.prezzoPosa)}</span></div>`
                   : `<div class="r sm"><span>Sola fornitura, posa esclusa</span><span>—</span></div>`}
-          ${r.trasporto?`<div class="r"><span>Trasporto</span><span>${eur(r.trasporto)}</span></div>`:""}
+          ${conf.conTrasporto===false
+            ? `<div class="r sm"><span>Trasporto escluso · franco ${esc(conf.sedeRitiro||"Reggio Emilia")}</span><span>—</span></div>`
+            : (r.trasporto? `<div class="r"><span>Trasporto</span><span>${eur(r.trasporto)}</span></div>` : "")}
           <div class="r fin"><span>Imponibile</span><span>${eur(r.imponibile)}</span></div>
           <div class="r sm"><span>IVA ${param.iva}%</span><span>${eur(r.iva)}</span></div>
           <div class="r"><span>Totale</span><span>${eur(r.totale)}</span></div>
@@ -1353,6 +1375,18 @@ function eliminaOfferta(i){
 /* =====================================================================
    DOCUMENTO DI OFFERTA
    ===================================================================== */
+/* testo della resa in offerta, secondo trasporto e posa */
+function resaTesto(c, r){
+  if(c.conTrasporto===false){
+    const sede = c.sedeRitiro || "Reggio Emilia";
+    return "Trasporto escluso, prezzi franco nostra sede di "+esc(sede)+". Ritiro a cura del committente.";
+  }
+  const dove = c.luogoConsegna? " a "+esc(c.luogoConsegna) : "";
+  return r.posa
+    ? "Materiale reso"+dove+" e posto in opera"
+    : "Materiale reso"+dove+", scarico escluso a carico del committente";
+}
+
 /* piè di pagina ripetuto su ogni pagina del documento */
 function piedeDoc(n, tot){
   return `<footer class="doc-piede">
@@ -1398,9 +1432,12 @@ function renderDocumento(){
   carat.push("Viteria in acciaio zincato per l'assemblaggio");
 
   const voci=[];
-  voci.push({d:"Fornitura del materiale come da descrizione, franco cantiere", q:num(conf.ml,0)+" ml", p:r.prezzoMat});
+  voci.push({d:"Fornitura del materiale come da descrizione"+
+    (conf.conTrasporto===false? ", franco nostra sede di "+(conf.sedeRitiro||"Reggio Emilia") : ", franco cantiere"),
+    q:num(conf.ml,0)+" ml", p:r.prezzoMat});
   if(r.posa) voci.push({d:"Posa in opera, comprese opere di fissaggio dei montanti", q:num(conf.ml,0)+" ml", p:r.prezzoPosa});
-  if(r.trasporto>0) voci.push({d:"Trasporto"+(conf.luogoConsegna?" a "+conf.luogoConsegna:"")+" — scarico escluso, a carico del committente", q:"a corpo", p:r.trasporto});
+  if(conf.conTrasporto!==false && r.trasporto>0)
+    voci.push({d:"Trasporto"+(conf.luogoConsegna? " a "+conf.luogoConsegna : "")+" — scarico escluso, a carico del committente", q:"a corpo", p:r.trasporto});
 
   el.innerHTML = `
   <div class="doc-barra">
@@ -1477,7 +1514,7 @@ function renderDocumento(){
       <tr><td>Termini di pagamento</td><td>${esc(param.condPagamento)}</td></tr>
       <tr><td>Tempi di consegna</td><td>${esc(param.condConsegna)}</td></tr>
       <tr><td>Validità dell'offerta</td><td>${esc(param.condValidita)}</td></tr>
-      <tr><td>Resa</td><td>${r.posa? "Franco cantiere, materiale posto in opera" : "Franco cantiere"+(conf.luogoConsegna? " — "+esc(conf.luogoConsegna):"")+", scarico escluso a carico del committente"}</td></tr>
+      <tr><td>Resa</td><td>${resaTesto(conf, r)}</td></tr>
     </tbody></table>
     <p class="doc-min">${esc(param.condEsclusioni)}${r.posa? "" : " La posa in opera non è compresa nella presente offerta."}</p>
 
