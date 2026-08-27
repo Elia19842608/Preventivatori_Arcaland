@@ -141,7 +141,7 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
   .foglio{border:0;border-radius:0;padding:0;max-width:none}
   .solo-video{display:none!important}
   .solo-carta{display:block!important}
-  .doc-dis,.doc-tab,.doc-firme,.doc-cond,.doc-head,.doc-piede{break-inside:avoid;page-break-inside:avoid}
+  .doc-dis,.doc-tab,.doc-firme,.doc-cond,.doc-head,.doc-piede,.doc-legenda{break-inside:avoid;page-break-inside:avoid}
   .doc-head,.doc-piede{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .doc-num{background:#F2F7FB!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .doc-sez{break-after:avoid}
@@ -184,6 +184,17 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
 .r-mg.grande strong{font-family:"Barlow Condensed";font-size:24px;font-weight:700;color:var(--blu-900)}
 textarea{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--linea);border-radius:6px;width:100%}
 
+
+.doc-legenda{list-style:none;margin:10px 0 0;padding:12px 14px;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 18px;
+  background:#F2F7FB;border:1px solid #D5E3EF;border-radius:6px}
+.doc-legenda li{display:flex;gap:8px;align-items:flex-start;break-inside:avoid}
+.doc-legenda .nn{flex:0 0 19px;height:19px;border-radius:50%;background:#0B3A63;color:#fff;
+  font-family:"IBM Plex Mono";font-size:11px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.doc-legenda .tt{font-size:12px;font-weight:600;color:#0B3A63;line-height:1.3}
+.doc-legenda em{display:block;font-style:normal;font-weight:400;font-size:11px;color:#5A6773;margin-top:1px}
+
+input.senza-prezzo{background:#FFF6F5;border-color:#E6C3C0;color:var(--err)}
 /* ---------- documento staccionate: pagine fisse ---------- */
 .pg-doc{display:flex;flex-direction:column;min-height:0}
 .pg-doc .doc-piede{margin-top:auto}
@@ -337,56 +348,118 @@ table input,table select{padding:6px 8px;font-size:14px}
    ===================================================================== */
 
 const LISTINO_DEF = [
-  /* ================= LEGNAME: un solo prezzo al metro lineare per sezione =================
-     Le lunghezze non stanno più a listino: i pezzi si ricavano dalle lunghezze standard
-     (150/200/250/300/400 cm) arrotondando per eccesso e tenendo conto dello scarto.        */
-  {cod:"LG-T06", cat:"Legname", forma:"T", diam:6,  lung:0, um:"ml", des:"Palo tondo Ø6 pino autoclave",   costo:1.10},
-  {cod:"LG-T07", cat:"Legname", forma:"T", diam:7,  lung:0, um:"ml", des:"Palo tondo Ø7 pino autoclave",   costo:1.45},
-  {cod:"LG-T08", cat:"Legname", forma:"T", diam:8,  lung:0, um:"ml", des:"Palo tondo Ø8 pino autoclave",   costo:1.90},
-  {cod:"LG-T10", cat:"Legname", forma:"T", diam:10, lung:0, um:"ml", des:"Palo tondo Ø10 pino autoclave",  costo:2.90},
-  {cod:"LG-T12", cat:"Legname", forma:"T", diam:12, lung:0, um:"ml", des:"Palo tondo Ø12 pino autoclave",  costo:4.10},
-  {cod:"LG-T14", cat:"Legname", forma:"T", diam:14, lung:0, um:"ml", des:"Palo tondo Ø14 pino autoclave",  costo:5.60},
-  {cod:"LG-M08", cat:"Legname", forma:"M", diam:8,  lung:0, um:"ml", des:"Mezzo palo Ø8 pino autoclave",   costo:1.30},
-  {cod:"LG-M10", cat:"Legname", forma:"M", diam:10, lung:0, um:"ml", des:"Mezzo palo Ø10 pino autoclave",  costo:1.95},
-  {cod:"LG-M12", cat:"Legname", forma:"M", diam:12, lung:0, um:"ml", des:"Mezzo palo Ø12 pino autoclave",  costo:2.75},
-  {cod:"LG-Q10", cat:"Legname", forma:"Q", diam:10, lung:0, um:"ml", des:"Palo quadro 10x10 pino autoclave", costo:3.60},
-  {cod:"LG-Q12", cat:"Legname", forma:"Q", diam:12, lung:0, um:"ml", des:"Palo quadro 12x12 pino autoclave", costo:5.10},
-
-  /* ================= LAVORAZIONI: prezzo a pezzo ================= */
-  {cod:"LV-SELLA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Sella di testa sul montante", costo:2.40},
-  {cod:"LV-FORO",  cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Foro passante sul montante (cad.)", costo:1.70},
-  {cod:"LV-PUNTA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Puntatura montante per infissione", costo:1.10},
-  {cod:"LV-FETTA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a fetta di salame su estremità obliquo", costo:3.20},
-  {cod:"LV-INCAS", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Incastro a mezzo legno nell'incrocio degli obliqui", costo:4.60},
-  {cod:"LV-TAGLIO",cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a misura del pezzo", costo:0.80},
-
-  /* ================= ACCESSORI E FERRAMENTA: prezzo a pezzo ================= */
-  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø100", costo:3.20},
-  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø120", costo:3.60},
-  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio zincato Ø140", costo:4.10},
-  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, zincata", costo:9.80},
-  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, zincata", costo:11.20},
-  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, zincata", costo:12.90},
-  {cod:"SF-T100", cat:"Ferramenta", forma:"F", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 con fittone da cementare", costo:12.40},
-  {cod:"SF-T120", cat:"Ferramenta", forma:"F", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 con fittone da cementare", costo:14.10},
-  {cod:"SF-T140", cat:"Ferramenta", forma:"F", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 con fittone da cementare", costo:16.30},
-  {cod:"TF-CHIM",  cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Tassello chimico + barra per staffa (a cura del posatore)", costo:2.80},
-  {cod:"VT-8X120", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 8x120", costo:0.42},
-  {cod:"VT-6X80",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 6x80", costo:0.21},
-  {cod:"VT-5X50",  cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 5x50", costo:0.12},
-
-  /* ================= POSA E OPERE EDILI ================= */
-  {cod:"PL-CLS",    cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Calcestruzzo per plinto montante", costo:7.50},
-  {cod:"PO-SCAVO",  cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Scavo e getto per montante o fittone", costo:6.00},
-  {cod:"PO-INFISS", cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Infissione montante con battipalo", costo:4.50},
-  {cod:"PO-ML",     cat:"Posa", forma:"", diam:0, lung:0, um:"ml", des:"Manodopera posa staccionata", costo:11.00}
+  {cod:"MT-T10-100", cat:"Montanti", forma:"T", diam:10, lung:100, um:"pz", des:"Montante tondo tornito Ø10 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-125", cat:"Montanti", forma:"T", diam:10, lung:125, um:"pz", des:"Montante tondo tornito Ø10 h.125 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-150", cat:"Montanti", forma:"T", diam:10, lung:150, um:"pz", des:"Montante tondo tornito Ø10 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-175", cat:"Montanti", forma:"T", diam:10, lung:175, um:"pz", des:"Montante tondo tornito Ø10 h.175 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-200", cat:"Montanti", forma:"T", diam:10, lung:200, um:"pz", des:"Montante tondo tornito Ø10 h.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-250", cat:"Montanti", forma:"T", diam:10, lung:250, um:"pz", des:"Montante tondo tornito Ø10 h.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T10-300", cat:"Montanti", forma:"T", diam:10, lung:300, um:"pz", des:"Montante tondo tornito Ø10 h.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-100", cat:"Montanti", forma:"T", diam:12, lung:100, um:"pz", des:"Montante tondo tornito Ø12 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-125", cat:"Montanti", forma:"T", diam:12, lung:125, um:"pz", des:"Montante tondo tornito Ø12 h.125 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-150", cat:"Montanti", forma:"T", diam:12, lung:150, um:"pz", des:"Montante tondo tornito Ø12 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-175", cat:"Montanti", forma:"T", diam:12, lung:175, um:"pz", des:"Montante tondo tornito Ø12 h.175 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-200", cat:"Montanti", forma:"T", diam:12, lung:200, um:"pz", des:"Montante tondo tornito Ø12 h.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-250", cat:"Montanti", forma:"T", diam:12, lung:250, um:"pz", des:"Montante tondo tornito Ø12 h.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T12-300", cat:"Montanti", forma:"T", diam:12, lung:300, um:"pz", des:"Montante tondo tornito Ø12 h.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-100", cat:"Montanti", forma:"T", diam:14, lung:100, um:"pz", des:"Montante tondo tornito Ø14 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-125", cat:"Montanti", forma:"T", diam:14, lung:125, um:"pz", des:"Montante tondo tornito Ø14 h.125 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-150", cat:"Montanti", forma:"T", diam:14, lung:150, um:"pz", des:"Montante tondo tornito Ø14 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-175", cat:"Montanti", forma:"T", diam:14, lung:175, um:"pz", des:"Montante tondo tornito Ø14 h.175 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-200", cat:"Montanti", forma:"T", diam:14, lung:200, um:"pz", des:"Montante tondo tornito Ø14 h.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-250", cat:"Montanti", forma:"T", diam:14, lung:250, um:"pz", des:"Montante tondo tornito Ø14 h.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-T14-300", cat:"Montanti", forma:"T", diam:14, lung:300, um:"pz", des:"Montante tondo tornito Ø14 h.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q10-100", cat:"Montanti", forma:"Q", diam:10, lung:100, um:"pz", des:"Montante quadro 10x10 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q10-150", cat:"Montanti", forma:"Q", diam:10, lung:150, um:"pz", des:"Montante quadro 10x10 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q10-200", cat:"Montanti", forma:"Q", diam:10, lung:200, um:"pz", des:"Montante quadro 10x10 h.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q10-250", cat:"Montanti", forma:"Q", diam:10, lung:250, um:"pz", des:"Montante quadro 10x10 h.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q12-100", cat:"Montanti", forma:"Q", diam:12, lung:100, um:"pz", des:"Montante quadro 12x12 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q12-150", cat:"Montanti", forma:"Q", diam:12, lung:150, um:"pz", des:"Montante quadro 12x12 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q12-200", cat:"Montanti", forma:"Q", diam:12, lung:200, um:"pz", des:"Montante quadro 12x12 h.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"MT-Q12-250", cat:"Montanti", forma:"Q", diam:12, lung:250, um:"pz", des:"Montante quadro 12x12 h.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T10-200", cat:"Corrimano", forma:"T", diam:10, lung:200, um:"pz", des:"Corrimano tondo Ø10 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T10-250", cat:"Corrimano", forma:"T", diam:10, lung:250, um:"pz", des:"Corrimano tondo Ø10 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T10-300", cat:"Corrimano", forma:"T", diam:10, lung:300, um:"pz", des:"Corrimano tondo Ø10 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T10-400", cat:"Corrimano", forma:"T", diam:10, lung:400, um:"pz", des:"Corrimano tondo Ø10 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T12-200", cat:"Corrimano", forma:"T", diam:12, lung:200, um:"pz", des:"Corrimano tondo Ø12 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T12-250", cat:"Corrimano", forma:"T", diam:12, lung:250, um:"pz", des:"Corrimano tondo Ø12 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T12-300", cat:"Corrimano", forma:"T", diam:12, lung:300, um:"pz", des:"Corrimano tondo Ø12 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-T12-400", cat:"Corrimano", forma:"T", diam:12, lung:400, um:"pz", des:"Corrimano tondo Ø12 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M10-200", cat:"Corrimano", forma:"M", diam:10, lung:200, um:"pz", des:"Corrimano mezzo palo Ø10 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M10-250", cat:"Corrimano", forma:"M", diam:10, lung:250, um:"pz", des:"Corrimano mezzo palo Ø10 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M10-300", cat:"Corrimano", forma:"M", diam:10, lung:300, um:"pz", des:"Corrimano mezzo palo Ø10 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M10-400", cat:"Corrimano", forma:"M", diam:10, lung:400, um:"pz", des:"Corrimano mezzo palo Ø10 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M12-200", cat:"Corrimano", forma:"M", diam:12, lung:200, um:"pz", des:"Corrimano mezzo palo Ø12 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M12-250", cat:"Corrimano", forma:"M", diam:12, lung:250, um:"pz", des:"Corrimano mezzo palo Ø12 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M12-300", cat:"Corrimano", forma:"M", diam:12, lung:300, um:"pz", des:"Corrimano mezzo palo Ø12 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"CM-M12-400", cat:"Corrimano", forma:"M", diam:12, lung:400, um:"pz", des:"Corrimano mezzo palo Ø12 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T6-200", cat:"Traverse", forma:"T", diam:6, lung:200, um:"pz", des:"Traversa tonda Ø6 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T6-250", cat:"Traverse", forma:"T", diam:6, lung:250, um:"pz", des:"Traversa tonda Ø6 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T6-300", cat:"Traverse", forma:"T", diam:6, lung:300, um:"pz", des:"Traversa tonda Ø6 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T6-400", cat:"Traverse", forma:"T", diam:6, lung:400, um:"pz", des:"Traversa tonda Ø6 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T8-200", cat:"Traverse", forma:"T", diam:8, lung:200, um:"pz", des:"Traversa tonda Ø8 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T8-250", cat:"Traverse", forma:"T", diam:8, lung:250, um:"pz", des:"Traversa tonda Ø8 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T8-300", cat:"Traverse", forma:"T", diam:8, lung:300, um:"pz", des:"Traversa tonda Ø8 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T8-400", cat:"Traverse", forma:"T", diam:8, lung:400, um:"pz", des:"Traversa tonda Ø8 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T10-200", cat:"Traverse", forma:"T", diam:10, lung:200, um:"pz", des:"Traversa tonda Ø10 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T10-250", cat:"Traverse", forma:"T", diam:10, lung:250, um:"pz", des:"Traversa tonda Ø10 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T10-300", cat:"Traverse", forma:"T", diam:10, lung:300, um:"pz", des:"Traversa tonda Ø10 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T10-400", cat:"Traverse", forma:"T", diam:10, lung:400, um:"pz", des:"Traversa tonda Ø10 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T12-200", cat:"Traverse", forma:"T", diam:12, lung:200, um:"pz", des:"Traversa tonda Ø12 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T12-250", cat:"Traverse", forma:"T", diam:12, lung:250, um:"pz", des:"Traversa tonda Ø12 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T12-300", cat:"Traverse", forma:"T", diam:12, lung:300, um:"pz", des:"Traversa tonda Ø12 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-T12-400", cat:"Traverse", forma:"T", diam:12, lung:400, um:"pz", des:"Traversa tonda Ø12 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M8-200", cat:"Traverse", forma:"M", diam:8, lung:200, um:"pz", des:"Traversa mezzo palo Ø8 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M8-250", cat:"Traverse", forma:"M", diam:8, lung:250, um:"pz", des:"Traversa mezzo palo Ø8 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M8-300", cat:"Traverse", forma:"M", diam:8, lung:300, um:"pz", des:"Traversa mezzo palo Ø8 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M8-400", cat:"Traverse", forma:"M", diam:8, lung:400, um:"pz", des:"Traversa mezzo palo Ø8 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M10-200", cat:"Traverse", forma:"M", diam:10, lung:200, um:"pz", des:"Traversa mezzo palo Ø10 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M10-250", cat:"Traverse", forma:"M", diam:10, lung:250, um:"pz", des:"Traversa mezzo palo Ø10 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M10-300", cat:"Traverse", forma:"M", diam:10, lung:300, um:"pz", des:"Traversa mezzo palo Ø10 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M10-400", cat:"Traverse", forma:"M", diam:10, lung:400, um:"pz", des:"Traversa mezzo palo Ø10 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M12-200", cat:"Traverse", forma:"M", diam:12, lung:200, um:"pz", des:"Traversa mezzo palo Ø12 L.200 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M12-250", cat:"Traverse", forma:"M", diam:12, lung:250, um:"pz", des:"Traversa mezzo palo Ø12 L.250 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M12-300", cat:"Traverse", forma:"M", diam:12, lung:300, um:"pz", des:"Traversa mezzo palo Ø12 L.300 cm, pino impregnato in autoclave", costo:0},
+  {cod:"TR-M12-400", cat:"Traverse", forma:"M", diam:12, lung:400, um:"pz", des:"Traversa mezzo palo Ø12 L.400 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T7-60", cat:"Stecche", forma:"T", diam:7, lung:60, um:"pz", des:"Stecca verticale tonda Ø7 h.60 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T7-80", cat:"Stecche", forma:"T", diam:7, lung:80, um:"pz", des:"Stecca verticale tonda Ø7 h.80 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T7-100", cat:"Stecche", forma:"T", diam:7, lung:100, um:"pz", des:"Stecca verticale tonda Ø7 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T7-120", cat:"Stecche", forma:"T", diam:7, lung:120, um:"pz", des:"Stecca verticale tonda Ø7 h.120 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T7-150", cat:"Stecche", forma:"T", diam:7, lung:150, um:"pz", des:"Stecca verticale tonda Ø7 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T8-60", cat:"Stecche", forma:"T", diam:8, lung:60, um:"pz", des:"Stecca verticale tonda Ø8 h.60 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T8-80", cat:"Stecche", forma:"T", diam:8, lung:80, um:"pz", des:"Stecca verticale tonda Ø8 h.80 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T8-100", cat:"Stecche", forma:"T", diam:8, lung:100, um:"pz", des:"Stecca verticale tonda Ø8 h.100 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T8-120", cat:"Stecche", forma:"T", diam:8, lung:120, um:"pz", des:"Stecca verticale tonda Ø8 h.120 cm, pino impregnato in autoclave", costo:0},
+  {cod:"ST-T8-150", cat:"Stecche", forma:"T", diam:8, lung:150, um:"pz", des:"Stecca verticale tonda Ø8 h.150 cm, pino impregnato in autoclave", costo:0},
+  {cod:"FA-U100", cat:"Ferramenta", forma:"U", diam:10, lung:0, um:"pz", des:"Fascetta a U acciaio zincato per palo Ø100", costo:0},
+  {cod:"FA-U120", cat:"Ferramenta", forma:"U", diam:12, lung:0, um:"pz", des:"Fascetta a U acciaio zincato per palo Ø120", costo:0},
+  {cod:"FA-U140", cat:"Ferramenta", forma:"U", diam:14, lung:0, um:"pz", des:"Fascetta a U acciaio zincato per palo Ø140", costo:0},
+  {cod:"SB-T100", cat:"Ferramenta", forma:"B", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 da tassellare, zincata", costo:0},
+  {cod:"SB-T120", cat:"Ferramenta", forma:"B", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 da tassellare, zincata", costo:0},
+  {cod:"SB-T140", cat:"Ferramenta", forma:"B", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 da tassellare, zincata", costo:0},
+  {cod:"SF-T100", cat:"Ferramenta", forma:"F", diam:10, lung:0, um:"pz", des:"Staffa a bicchiere Ø100 con fittone da cementare, zincata", costo:0},
+  {cod:"SF-T120", cat:"Ferramenta", forma:"F", diam:12, lung:0, um:"pz", des:"Staffa a bicchiere Ø120 con fittone da cementare, zincata", costo:0},
+  {cod:"SF-T140", cat:"Ferramenta", forma:"F", diam:14, lung:0, um:"pz", des:"Staffa a bicchiere Ø140 con fittone da cementare, zincata", costo:0},
+  {cod:"VT-8X120", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 8x120", costo:0},
+  {cod:"VT-6X80", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 6x80", costo:0},
+  {cod:"VT-5X50", cat:"Ferramenta", forma:"", diam:0, lung:0, um:"pz", des:"Vite TSP acciaio zincato 5x50", costo:0},
+  {cod:"LV-SELLA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Sella di testa sul montante", costo:0},
+  {cod:"LV-FORO", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Foro passante sul montante (cad.)", costo:0},
+  {cod:"LV-PUNTA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Puntatura montante per infissione", costo:0},
+  {cod:"LV-FETTA", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a fetta di salame su estremità obliquo", costo:0},
+  {cod:"LV-INCAS", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Incastro a mezzo legno nell'incrocio degli obliqui", costo:0},
+  {cod:"LV-TAGLIO", cat:"Lavorazioni", forma:"", diam:0, lung:0, um:"pz", des:"Taglio a misura dell'articolo", costo:0},
+  {cod:"PO-ML", cat:"Posa", forma:"", diam:0, lung:0, um:"ml", des:"Manodopera posa staccionata", costo:0},
+  {cod:"PO-SCAVO", cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Scavo e getto per montante o fittone", costo:0},
+  {cod:"PO-INFISS", cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Infissione montante con battipalo", costo:0},
+  {cod:"PL-CLS", cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Calcestruzzo per plinto montante", costo:0},
+  {cod:"TF-CHIM", cat:"Posa", forma:"", diam:0, lung:0, um:"pz", des:"Tassello chimico + barra per staffa (a cura del posatore)", costo:0}
 ];
 
 const PARAM_DEF = {
   margineMat:35, marginePosa:25, provvigione:0, iva:22,
   interroMurato:50,   // cm interrati con palo murato
   interroInfisso:60,  // cm interrati con palo infisso
-  lunghezzeStd:"150,200,250,300,400",  // lunghezze commerciali del legname, in cm
   /* dati per il documento di offerta — modificabili in Listino e costi */
   azRagione:"Zennaro Legnami S.r.l.",
   azDivisione:"Arcaland — attrezzature ludiche e arredo urbano",
@@ -427,37 +500,55 @@ const costoDi = cod => { const v=voce(cod); return v? Number(v.costo)||0 : 0; };
 const descDi  = cod => { const v=voce(cod); return v? v.des : cod; };
 const umDi    = cod => { const v=voce(cod); return v? v.um : "pz"; };
 const perCat  = cat => listino.filter(x=>x.cat===cat);
-const diametri = (forma) => [...new Set(listino.filter(x=>x.cat==="Legname" && (!forma||x.forma===forma)).map(x=>Number(x.diam)))].filter(d=>d>0).sort((a,b)=>a-b);
-const legname = (forma,diam) => listino.find(x=>x.cat==="Legname" && x.forma===forma && Number(x.diam)===Number(diam)) || null;
+/* ---------- ricerca articoli a catalogo ---------- */
+const artCat  = (cat,forma) => listino.filter(x=>x.cat===cat && (!forma || x.forma===forma));
+const diametri = (cat,forma) => [...new Set(artCat(cat,forma).map(x=>Number(x.diam)))].filter(d=>d>0).sort((a,b)=>a-b);
+const lunghezze = (cat,forma,diam) => artCat(cat,forma).filter(x=>Number(x.diam)===Number(diam))
+  .map(x=>Number(x.lung)).filter(l=>l>0).sort((a,b)=>a-b);
 
-/* lunghezze commerciali disponibili */
-function lunghezzeStd(){
-  const a = String(param.lunghezzeStd||"150,200,250,300,400").split(/[^0-9]+/).map(Number).filter(x=>x>0).sort((x,y)=>x-y);
-  return a.length? a : [150,200,250,300,400];
+/* articolo più corto che copre la misura richiesta; se nessuno la copre, il più lungo */
+function articolo(cat,forma,diam,lungMin){
+  const c = artCat(cat,forma).filter(x=>Number(x.diam)===Number(diam) && Number(x.lung)>0)
+    .sort((a,b)=>a.lung-b.lung);
+  if(!c.length) return null;
+  return c.find(x=>Number(x.lung)>=Number(lungMin)) || c[c.length-1];
 }
-/* dato un pezzo da tagliare lungo needCm, sceglie la barra standard più conveniente:
-   quella che minimizza i centimetri consumati per pezzo, cioè lo scarto */
-function pezzoDa(needCm){
-  const std = lunghezzeStd(), need = Math.max(1, Number(needCm)||1);
+/* per gli orizzontali: sceglie l'articolo che copre più campate con meno scarto */
+function articoloModulare(cat,forma,diam,passoCm){
+  const c = artCat(cat,forma).filter(x=>Number(x.diam)===Number(diam) && Number(x.lung)>0);
   let best=null;
-  std.forEach(L=>{
-    const per = Math.floor(L/need); if(per<1) return;
-    const cm = L/per;
-    if(!best || cm < best.cmPerPezzo-0.01 || (Math.abs(cm-best.cmPerPezzo)<=0.01 && L>best.lung))
-      best = {lung:L, per, cmPerPezzo:cm, sfrido:+(L-per*need).toFixed(1), need};
+  c.forEach(v=>{
+    const per = Math.floor(Number(v.lung)/passoCm);
+    if(per<1) return;
+    const cmPer = Number(v.lung)/per, scarto = Number(v.lung) - per*passoCm;
+    const costoPer = (Number(v.costo)||0)/per;
+    if(!best) best={voce:v, per, cmPer, scarto, costoPer};
+    else{
+      /* con i prezzi inseriti sceglie il più economico per campata,
+         finché sono a zero sceglie quello con meno scarto */
+      const megliaPrezzo = costoPer < best.costoPer - 0.001;
+      const pariPrezzo = Math.abs(costoPer - best.costoPer) <= 0.001;
+      if(megliaPrezzo || (pariPrezzo && (scarto < best.scarto ||
+         (scarto===best.scarto && Number(v.lung)>Number(best.voce.lung)))))
+        best={voce:v, per, cmPer, scarto, costoPer};
+    }
   });
-  if(!best){ const L=std[std.length-1]; best={lung:L, per:1, cmPerPezzo:L, sfrido:0, need, corto:true}; }
+  if(!best && c.length){
+    const v = c.sort((a,b)=>b.lung-a.lung)[0];
+    best={voce:v, per:1, cmPer:Number(v.lung), scarto:0, costoPer:Number(v.costo)||0, corto:true};
+  }
   return best;
 }
+const voceCod = cod => listino.find(x=>x.cod===cod) || null;
 function trovaFerramenta(forma,diam){
-  const c = listino.filter(x=>x.cat==="Ferramenta" && x.forma===forma).sort((a,b)=>a.diam-b.diam);
+  const c = artCat("Ferramenta",forma).sort((a,b)=>a.diam-b.diam);
   return c.find(x=>Number(x.diam)>=Number(diam)) || c[c.length-1] || null;
 }
 function toast(m){ const t=document.createElement("div"); t.className="toast"; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 /* =====================================================================
-   CALCOLO
+   CALCOLO — tutto su articoli finiti a catalogo
    ===================================================================== */
 function lunghezzaPalo(c){
   const hF = Number(c.hFuori)||1;
@@ -474,33 +565,26 @@ function calcola(c){
   const geo = lunghezzaPalo(c);
   const campate = Math.max(1, Math.ceil(ml/inter));
   const montanti = campate + 1;
-
   const posa = c.posa!==false;
+
   const righe=[], mancanti=[], sc={};
-  /* accessori, lavorazioni e posa: prezzo a pezzo dal listino */
   const add=(cod,q,note)=>{
-    const v=voce(cod); if(!v||q<=0) return;
+    const v=voceCod(cod); if(!v||q<=0) return;
     righe.push({cod, cat:v.cat, des:v.des, um:v.um, q, cu:Number(v.costo)||0, tot:q*(Number(v.costo)||0), note:note||""});
   };
-  /* legname: prezzo al metro × lunghezza della barra standard acquistata */
-  const addLegno=(v, pezziNecessari, needCm, etichetta)=>{
-    if(!v || pezziNecessari<=0) return null;
-    const s = pezzoDa(needCm);
-    const barre = Math.ceil(pezziNecessari/s.per);
-    const cu = s.lung/100*(Number(v.costo)||0);
-    righe.push({cod:v.cod+"·"+s.lung, cat:"Legname", des:v.des+" — barra da "+s.lung+" cm",
-      um:"pz", q:barre, cu, tot:barre*cu,
-      note: etichetta+": "+pezziNecessari+" pezzi da "+num(needCm,0)+" cm · "+
-        (s.per>1? "1 barra = "+s.per+" pezzi" : "1 barra = 1 pezzo")+
-        (s.sfrido>0? " · scarto "+num(s.sfrido,0)+" cm a barra" : " · nessuno scarto")});
-    add("LV-TAGLIO", barre*Math.max(0, s.per-(s.sfrido>0?0:1)), "tagli a misura dei pezzi");
-    return {...s, voce:v, barre, cu};
+  const addArt=(v,q,note)=>{
+    if(!v||q<=0) return;
+    righe.push({cod:v.cod, cat:v.cat, des:v.des, um:v.um, q, cu:Number(v.costo)||0, tot:q*(Number(v.costo)||0), note:note||""});
   };
 
-  /* ---------- montanti ---------- */
-  const vMont = legname(c.montanteForma, c.montanteDiam);
-  if(vMont) sc.montante = addLegno(vMont, montanti, geo.tot*100, "Montanti");
-  else mancanti.push("palo "+(c.montanteForma==="Q"?"quadro ":"tondo Ø")+c.montanteDiam);
+  /* ---------- montanti: articolo finito della lunghezza necessaria ---------- */
+  const needMont = geo.tot*100;
+  const vMont = articolo("Montanti", c.montanteForma, c.montanteDiam, needMont);
+  if(vMont){
+    addArt(vMont, montanti, "servono "+num(needMont,0)+" cm fuori terra + interrati");
+    sc.montante = {voce:vMont, q:montanti, need:needMont};
+    if(Number(vMont.lung) < needMont) mancanti.push("montante Ø"+c.montanteDiam+" da almeno "+num(needMont,0)+" cm");
+  } else mancanti.push("montante "+(c.montanteForma==="Q"?"quadro ":"tondo Ø")+c.montanteDiam);
   if(c.sella)  add("LV-SELLA", montanti);
   if(c.fori>0) add("LV-FORO", montanti*Number(c.fori), Number(c.fori)+" fori per montante");
 
@@ -509,7 +593,7 @@ function calcola(c){
   if(c.fissaggio==="bicchiere" || c.fissaggio==="fittone"){
     staffa = trovaFerramenta(c.fissaggio==="fittone"?"F":"B", c.montanteDiam);
     if(staffa){
-      add(staffa.cod, montanti);
+      addArt(staffa, montanti);
       if(c.fissaggio==="bicchiere"){ if(posa) add("TF-CHIM", montanti*4, "4 tasselli per staffa"); }
       else if(posa){ add("PO-SCAVO", montanti, "scavo e getto per fittone"); add("PL-CLS", montanti); }
     } else mancanti.push("staffa Ø"+c.montanteDiam);
@@ -517,55 +601,51 @@ function calcola(c){
   } else if(c.fissaggio==="murato"){ if(posa){ add("PL-CLS", montanti); add("PO-SCAVO", montanti); } }
   else if(c.fissaggio==="infisso"){ add("LV-PUNTA", montanti); if(posa) add("PO-INFISS", montanti); }
 
-  /* ---------- corrimano: pezzi che scavalcano una o più campate ---------- */
-  let v8=0, v6=0, v5=0, cmVoce=null, coVoce=null, stVoce=null, faVoce=null;
+  /* ---------- corrimano ---------- */
+  let v8=0, v6=0, v5=0, faVoce=null;
   if(L.corrimano){
-    cmVoce = legname(c.corrimanoForma, c.corrimanoDiam);
-    if(cmVoce){
-      const p = pezzoDa(inter*100);                       // quante campate copre una barra
-      const moduli = Math.max(1, Math.floor(p.lung/(inter*100)));
-      const pezzi = Math.ceil(campate/moduli);
-      const cu = p.lung/100*(Number(cmVoce.costo)||0);
-      righe.push({cod:cmVoce.cod+"·"+p.lung, cat:"Legname", des:cmVoce.des+" — barra da "+p.lung+" cm",
-        um:"pz", q:pezzi, cu, tot:pezzi*cu,
-        note:"Corrimano: 1 barra copre "+moduli+(moduli===1?" campata":" campate")+
-          (p.sfrido>0? " · scarto "+num(p.sfrido,0)+" cm a barra":" · nessuno scarto")});
-      sc.corrimano = {...p, moduli, pezzi, voce:cmVoce, cu};
-      if(p.sfrido>0) add("LV-TAGLIO", pezzi, "tagli a misura dei pezzi");
+    const s = articoloModulare("Corrimano", c.corrimanoForma, c.corrimanoDiam, inter*100);
+    if(s){
+      const pezzi = Math.ceil(campate/s.per);
+      addArt(s.voce, pezzi, s.corto ? "articolo più lungo disponibile per l'interasse scelto"
+        : "1 pezzo copre "+s.per+(s.per===1?" campata":" campate")+(s.scarto>0? " · scarto "+num(s.scarto,0)+" cm":" · nessuno scarto"));
+      if(s.scarto>0) add("LV-TAGLIO", pezzi, "taglio a misura del corrimano");
+      sc.corrimano = {...s, pezzi};
     } else mancanti.push("corrimano Ø"+c.corrimanoDiam);
     if(c.fascetta){
       faVoce = trovaFerramenta("U", c.montanteDiam);
-      if(faVoce) add(faVoce.cod, montanti); else mancanti.push("fascetta a U Ø"+c.montanteDiam);
+      if(faVoce) addArt(faVoce, montanti); else mancanti.push("fascetta a U Ø"+c.montanteDiam);
     }
     v8 += montanti*2;
   }
 
-  /* ---------- correnti orizzontali ---------- */
+  /* ---------- traverse orizzontali ---------- */
   const nCorr = Number(c.nCorrenti)||0;
   if(nCorr>0){
-    coVoce = legname(c.correnteForma, c.correnteDiam);
-    if(coVoce){
-      const p = pezzoDa(inter*100);
-      const moduli = Math.max(1, Math.floor(p.lung/(inter*100)));
-      const pezzi = Math.ceil(campate*nCorr/moduli);
-      const cu = p.lung/100*(Number(coVoce.costo)||0);
-      righe.push({cod:coVoce.cod+"·"+p.lung, cat:"Legname", des:coVoce.des+" — barra da "+p.lung+" cm",
-        um:"pz", q:pezzi, cu, tot:pezzi*cu,
-        note:nCorr+(nCorr===1?" fila di correnti":" file di correnti")+": 1 barra copre "+moduli+(moduli===1?" campata":" campate")+
-          (p.sfrido>0? " · scarto "+num(p.sfrido,0)+" cm a barra":" · nessuno scarto")});
-      sc.correnti = {...p, moduli, pezzi, voce:coVoce, cu};
-      if(p.sfrido>0) add("LV-TAGLIO", pezzi, "tagli a misura dei pezzi");
-    } else mancanti.push("corrente Ø"+c.correnteDiam);
+    const s = articoloModulare("Traverse", c.correnteForma, c.correnteDiam, inter*100);
+    if(s){
+      const pezzi = Math.ceil(campate*nCorr/s.per);
+      addArt(s.voce, pezzi, nCorr+(nCorr===1?" fila":" file")+" · 1 pezzo copre "+s.per+(s.per===1?" campata":" campate")+
+        (s.scarto>0? " · scarto "+num(s.scarto,0)+" cm":" · nessuno scarto"));
+      if(s.scarto>0) add("LV-TAGLIO", pezzi, "taglio a misura delle traverse");
+      sc.correnti = {...s, pezzi};
+    } else mancanti.push("traversa Ø"+c.correnteDiam);
     v6 += montanti*nCorr*2;
   }
 
   /* ---------- obliqui della croce ---------- */
   if(L.croce){
-    const dg = Math.sqrt(inter*inter + geo.hF*geo.hF)*100;   // diagonale reale in cm
+    const dg = Math.sqrt(inter*inter + geo.hF*geo.hF)*100;
     const obF = c.obliquoForma || "M";
-    const obV = legname(obF, c.obliquoDiam||c.correnteDiam);
-    if(obV) sc.obliqui = addLegno(obV, campate*2, dg, "Obliqui");
-    else mancanti.push("obliquo "+(obF==="M"?"mezzo palo":"tondo")+" Ø"+(c.obliquoDiam||c.correnteDiam));
+    const obD = c.obliquoDiam || c.correnteDiam;
+    const vOb = articolo("Traverse", obF, obD, dg);
+    if(vOb){
+      const perPezzo = Math.max(1, Math.floor(Number(vOb.lung)/dg));
+      const pezzi = Math.ceil(campate*2/perPezzo);
+      addArt(vOb, pezzi, "2 obliqui per campata da "+num(dg,0)+" cm"+(perPezzo>1? " · "+perPezzo+" obliqui per pezzo":""));
+      add("LV-TAGLIO", campate*2, "taglio a misura degli obliqui");
+      sc.obliqui = {voce:vOb, pezzi, need:dg, perPezzo};
+    } else mancanti.push("traversa obliqua Ø"+obD+" da almeno "+num(dg,0)+" cm");
     if(obF!=="M"){ add("LV-FETTA", campate*2*2, "2 tagli a fetta di salame per obliquo");
                    add("LV-INCAS", campate, "1 incastro a mezzo legno per incrocio"); }
     else if(c.incastro!==false) add("LV-INCAS", campate, "1 incastro a mezzo legno per incrocio");
@@ -576,9 +656,12 @@ function calcola(c){
   if(L.stecche){
     const passo = Number(c.passoStecche)||0.12;
     const nSt = Math.floor(ml/passo);
-    stVoce = legname("T", c.steccaDiam);
-    if(stVoce) sc.stecche = addLegno(stVoce, nSt, geo.hF*0.92*100, "Stecche");
-    else mancanti.push("stecca Ø"+c.steccaDiam);
+    const hSt = geo.hF*0.92*100;
+    const vSt = articolo("Stecche","T", c.steccaDiam, hSt);
+    if(vSt){
+      addArt(vSt, nSt, "passo "+num(passo*100,0)+" cm · altezza utile "+num(hSt,0)+" cm");
+      sc.stecche = {voce:vSt, q:nSt, need:hSt};
+    } else mancanti.push("stecca Ø"+c.steccaDiam+" da almeno "+num(hSt,0)+" cm");
     v5 += nSt*Math.max(2,nCorr);
   }
 
@@ -595,11 +678,15 @@ function calcola(c){
   const imponibile = prezzoMat+prezzoPosa+trasporto;
   const iva = imponibile*(Number(param.iva)||0)/100;
 
+  /* articoli senza prezzo a listino */
+  const senzaPrezzo = [...new Set(righe.filter(r=>!r.cu).map(r=>r.cod))];
+
   const map={}; righe.forEach(r=>{ if(map[r.cod]){ map[r.cod].q+=r.q; map[r.cod].tot+=r.tot; } else map[r.cod]={...r}; });
 
-  return {layout:L, geo, campate, montanti, ml, inter, sc, staffa, posa, cmVoce, coVoce, stVoce, faVoce,
-    mont: sc.montante, righe:Object.values(map), mancanti, costoMat, costoPosa, prezzoMat, prezzoPosa,
-    trasporto, imponibile, iva, totale:imponibile+iva, alMetro: ml>0? imponibile/ml : 0};
+  return {layout:L, geo, campate, montanti, ml, inter, sc, staffa, faVoce, posa,
+    mont: sc.montante, righe:Object.values(map), mancanti, senzaPrezzo,
+    costoMat, costoPosa, prezzoMat, prezzoPosa, trasporto,
+    imponibile, iva, totale:imponibile+iva, alMetro: ml>0? imponibile/ml : 0};
 }
 
 /* =====================================================================
@@ -839,20 +926,22 @@ function disegna(c, opt){
   if(L.corrimano){
     s += bollo(meta(xs[0],xs[1]), yTop, "Corrimano",
       (c.corrimanoForma==="M"?"Mezzo palo Ø":"Tondo Ø")+c.corrimanoDiam+
-      (R2.sc.corrimano? " · barre da "+R2.sc.corrimano.lung+" cm ("+R2.sc.corrimano.moduli+(R2.sc.corrimano.moduli===1?" campata":" campate")+" cad.)" : ""));
+      (R2.sc.corrimano? " · art. "+R2.sc.corrimano.voce.cod+" L."+R2.sc.corrimano.voce.lung+" cm" : ""));
     if(c.fascetta) s += bollo(xs[2], yTop-wCm*0.5-6, "Fascetta a U",
       "Zincata sopra il corrimano"+(R2.faVoce? " · "+R2.faVoce.cod : ""));
   }
   s += bollo(xs[1], yBaseP-hF*scala*0.62, "Montante",
-    (c.montanteForma==="Q"?"Quadro ":"Tondo Ø")+c.montanteDiam+" · pezzo "+num(geo.tot*100,0)+" cm"+
-    (R2.sc.montante? " da barra "+R2.sc.montante.lung+" cm":"")+(c.sella?" · con sella":"")+(c.fori>0?" · "+c.fori+" fori":""));
+    (c.montanteForma==="Q"?"Quadro ":"Tondo Ø")+c.montanteDiam+
+    (R2.sc.montante? " · art. "+R2.sc.montante.voce.cod+" h."+R2.sc.montante.voce.lung+" cm":"")+
+    (c.sella?" · con sella":"")+(c.fori>0?" · "+c.fori+" fori":""));
   if(nC>0) s += bollo(meta(xs[2],xs[3]), yBaseP-(hF*1/(nC+1))*scala, nC===1? "Corrente orizzontale" : nC+" correnti orizzontali",
     (c.correnteForma==="M"?"Mezzo palo Ø":"Tondo Ø")+c.correnteDiam+(passanti?" · passanti nei fori":" · avvitati in facciata"));
   if(L.croce) s += bollo(meta(xs[0],xs[1]), meta(yBaseP-6, yTop+wCm), "Obliqui incrociati",
     (mezzoPalo?"Mezzi pali avvitati a fianco":"Pali interi tagliati a fetta")+" Ø"+(c.obliquoDiam||c.correnteDiam)+
     ((c.incastro!==false||!mezzoPalo)?" · incastro a mezzo legno":" · sovrapposti e avvitati"));
   if(L.stecche) s += bollo(xs[2]+scala*0.16, yBaseP-hF*scala*0.28, "Stecche verticali",
-    "Ø"+c.steccaDiam+" passo "+num((c.passoStecche||0.12)*100,0)+" cm"+(R2.sc.stecche? " · h."+num(R2.sc.stecche.need,0)+" cm da barra "+R2.sc.stecche.lung+" cm":""));
+    "Ø"+c.steccaDiam+" passo "+num((c.passoStecche||0.12)*100,0)+" cm"+
+    (R2.sc.stecche? " · art. "+R2.sc.stecche.voce.cod+" h."+R2.sc.stecche.voce.lung+" cm":""));
   s += bollo(xs[0], staffaAlta>0? suolo-staffaAlta*scala*0.5 : suolo+Math.max(interro,0.12)*scala*0.55,
     FISSAGGI[c.fissaggio].nome,
     c.fissaggio==="bicchiere" ? "Tassellata su piano esistente"+(R2.staffa? " · "+R2.staffa.cod:"")
@@ -1080,10 +1169,10 @@ function renderWizard(){
       <button class="chip ${conf.montanteForma==="Q"?"sel":""}" onclick="setConf('montanteForma','Q')">Quadro</button>
     </div></fieldset>
     <fieldset><legend>Diametro del montante</legend><div class="chips">
-      ${diametri(conf.montanteForma).map(d=>{
-        const v=legname(conf.montanteForma,d), s=pezzoDa(lunghezzaPalo(conf).tot*100);
+      ${diametri("Montanti",conf.montanteForma).map(d=>{
+        const a=articolo("Montanti",conf.montanteForma,d,lunghezzaPalo(conf).tot*100);
         return `<button class="chip ${Number(conf.montanteDiam)===d?"sel":""}" onclick="setConf('montanteDiam',${d})">
-          ${conf.montanteForma==="Q"?d+"x"+d:"Ø "+d} <small>${v? num(v.costo)+" €/ml · pezzo "+num(s.cmPerPezzo,0)+" cm = "+num(s.cmPerPezzo/100*v.costo)+" €":"non a listino"}</small></button>`;
+          ${conf.montanteForma==="Q"?d+"x"+d:"Ø "+d} <small>${a? "h."+a.lung+" cm · "+(a.costo? num(a.costo)+" €" : "prezzo da inserire") : "non a catalogo"}</small></button>`;
       }).join("")}
     </div>${notaPalo()}</fieldset>
     <fieldset><legend>Lavorazioni</legend>
@@ -1103,8 +1192,8 @@ function renderWizard(){
           <button class="chip ${conf.corrimanoForma==="M"?"sel":""}" onclick="setConf('corrimanoForma','M')">Mezzo palo</button>
         </div>
         <label>Diametro corrimano</label><div class="chips">
-          ${diametri(conf.corrimanoForma).map(d=>{ const v=legname(conf.corrimanoForma,d);
-            return `<button class="chip ${Number(conf.corrimanoDiam)===d?"sel":""}" onclick="setConf('corrimanoDiam',${d})">Ø ${d} <small>${v? num(v.costo)+" €/ml":"—"}</small></button>`;}).join("")}
+          ${diametri("Corrimano",conf.corrimanoForma).map(d=>{ const s=articoloModulare("Corrimano",conf.corrimanoForma,d,conf.interasse*100);
+            return `<button class="chip ${Number(conf.corrimanoDiam)===d?"sel":""}" onclick="setConf('corrimanoDiam',${d})">Ø ${d} <small>${s? "L."+s.voce.lung+" cm"+(s.voce.costo? " · "+num(s.voce.costo)+" €":"") : "—"}</small></button>`;}).join("")}
         </div>
         ${notaCorrimano()}
         <div class="chips" style="margin-top:14px">
@@ -1121,8 +1210,8 @@ function renderWizard(){
         <button class="chip ${conf.correnteForma==="T"?"sel":""}" onclick="setConf('correnteForma','T')">Tondo</button>
         <button class="chip ${conf.correnteForma==="M"?"sel":""}" onclick="setConf('correnteForma','M')">Mezzo palo</button>
       </div><label>Diametro corrente</label><div class="chips">
-        ${diametri(conf.correnteForma).map(d=>{ const v=legname(conf.correnteForma,d);
-          return `<button class="chip ${Number(conf.correnteDiam)===d?"sel":""}" onclick="setConf('correnteDiam',${d})">Ø ${d} <small>${v?num(v.costo)+" €/ml":"—"}</small></button>`;}).join("")}
+        ${diametri("Traverse",conf.correnteForma).map(d=>{ const v=articoloModulare("Traverse",conf.correnteForma,d,conf.interasse*100);
+          return `<button class="chip ${Number(conf.correnteDiam)===d?"sel":""}" onclick="setConf('correnteDiam',${d})">Ø ${d} <small>${v? "L."+v.voce.lung+" cm"+(v.voce.costo? " · "+num(v.voce.costo)+" €":"") : "—"}</small></button>`;}).join("")}
       </div>`;
     }
     h+=`</fieldset>`;
@@ -1134,15 +1223,15 @@ function renderWizard(){
           <div class="nome">Pali interi tagliati a fetta</div><div class="desc">Palo intero con taglio obliquo a fetta di salame per l'appoggio pari al montante</div></button>
       </div>
       <label>Diametro obliquo</label><div class="chips">
-        ${diametri(conf.obliquoForma).map(d=>{ const v=legname(conf.obliquoForma,d);
-          return `<button class="chip ${Number(conf.obliquoDiam)===d?"sel":""}" onclick="setConf('obliquoDiam',${d})">Ø ${d} <small>${v?num(v.costo)+" €/ml":"—"}</small></button>`;}).join("")}
+        ${diametri("Traverse",conf.obliquoForma).map(d=>{ const v=articoloModulare("Traverse",conf.obliquoForma,d,conf.interasse*100);
+          return `<button class="chip ${Number(conf.obliquoDiam)===d?"sel":""}" onclick="setConf('obliquoDiam',${d})">Ø ${d} <small>${v? "L."+v.voce.lung+" cm":"—"}</small></button>`;}).join("")}
       </div>
       ${lavorazioniObliqui()}</fieldset>`;
     }
     if(L.stecche){
       h+=`<fieldset><legend>Stecche verticali</legend><label>Diametro stecca</label><div class="chips">
-        ${diametri("T").map(d=>{ const v=legname("T",d);
-          return `<button class="chip ${Number(conf.steccaDiam)===d?"sel":""}" onclick="setConf('steccaDiam',${d})">Ø ${d} <small>${v?num(v.costo)+" €/ml":"—"}</small></button>`;}).join("")}
+        ${diametri("Stecche","T").map(d=>{ const v=articolo("Stecche","T",d,lunghezzaPalo(conf).hF*92);
+          return `<button class="chip ${Number(conf.steccaDiam)===d?"sel":""}" onclick="setConf('steccaDiam',${d})">Ø ${d} <small>${v? "h."+v.lung+" cm":"—"}</small></button>`;}).join("")}
       </div>
       <div style="margin-top:14px;max-width:300px"><label>Passo tra le stecche (cm)</label>
       <input type="number" step="1" value="${Math.round(conf.passoStecche*100)}" onchange="conf.passoStecche=(Number(this.value)||10)/100;renderWizard()"></div></fieldset>`;
@@ -1204,13 +1293,15 @@ function renderWizard(){
       </aside>
     </div>`;
 
-    if(r.mancanti.length) h+=`<div class="avviso" style="margin:18px 0 0"><strong>Articoli non trovati a listino:</strong> ${esc(r.mancanti.join(", "))}. Aggiungili in Listino e costi.</div>`;
+    if(r.mancanti.length) h+=`<div class="avviso" style="margin:18px 0 0"><strong>Articoli non trovati a catalogo:</strong> ${esc(r.mancanti.join(", "))}. Aggiungili in Listino e costi.</div>`;
+    if(r.senzaPrezzo.length) h+=`<div class="avviso" style="margin:18px 0 0"><strong>Prezzo mancante su ${r.senzaPrezzo.length} ${r.senzaPrezzo.length===1?"articolo":"articoli"}:</strong>
+      ${esc(r.senzaPrezzo.join(", "))}. Finché il costo è a zero il preventivo non è attendibile: inserisci i prezzi in Listino e costi.</div>`;
 
     h+=`<div class="card" style="margin-top:18px">
       <div class="titolo-sez" style="margin-bottom:10px">
         <div><div class="eyebrow" style="margin:0">Distinta di fornitura</div>
           <h3 class="tit-dis">Materiali e lavorazioni su ${num(conf.ml,0)} ml</h3></div>
-        <div class="muted">Montante ${num(g.tot*100,0)} cm · barre standard ${esc(param.lunghezzeStd)} cm</div>
+        <div class="muted">Montante necessario ${num(g.tot*100,0)} cm${r.mont? " · articolo "+esc(r.mont.voce.cod)+" h."+r.mont.voce.lung+" cm":""}</div>
       </div>
       <div class="tab-wrap"><table class="distinta">
         <thead><tr><th>Codice</th><th>Descrizione</th><th class="num">Q.tà</th><th>UM</th><th class="num">Costo un.</th><th class="num">Totale costo</th></tr></thead>
@@ -1258,27 +1349,25 @@ function lavorazioniObliqui(){
       : "Nessuna lavorazione: i mezzi pali vengono solo sovrapposti e avvitati."}</div></div>`;
 }
 function notaCorrimano(){
-  const v = legname(conf.corrimanoForma, conf.corrimanoDiam);
-  if(!v) return `<div class="avviso">Nessun palo Ø${conf.corrimanoDiam} di questa forma a listino.</div>`;
-  const iCm = (Number(conf.interasse)||2)*100;
-  const s = pezzoDa(iCm), moduli = Math.max(1, Math.floor(s.lung/iCm));
+  const s = articoloModulare("Corrimano", conf.corrimanoForma, conf.corrimanoDiam, conf.interasse*100);
+  if(!s) return `<div class="avviso">Nessun corrimano Ø${conf.corrimanoDiam} di questa forma a catalogo.</div>`;
   const camp = Math.max(1, Math.ceil((Number(conf.ml)||0)/(Number(conf.interasse)||2)));
-  const pezzi = Math.ceil(camp/moduli), cu = s.lung/100*(Number(v.costo)||0);
-  return `<div class="info">Con interasse ${num(iCm,0)} cm la barra più conveniente è quella da <strong>${s.lung} cm</strong>:
-    copre ${moduli}${moduli===1?" campata":" campate"}${s.sfrido>0? " con "+num(s.sfrido,0)+" cm di scarto":" senza scarto"}.
-    Costo barra ${num(s.lung/100,2)} m × ${num(v.costo)} €/ml = <strong>${eur(cu)}</strong> —
-    su ${num(conf.ml,0)} ml servono <strong>${pezzi} barre</strong> (${camp} campate).</div>`;
+  const pezzi = Math.ceil(camp/s.per);
+  return `<div class="info">Con interasse ${num(conf.interasse*100,0)} cm l'articolo più adatto è
+    <strong>${esc(s.voce.cod)}</strong> — ${esc(s.voce.des)}:
+    copre ${s.per}${s.per===1?" campata":" campate"}${s.scarto>0? " con "+num(s.scarto,0)+" cm di scarto":" senza scarto"}.
+    Su ${num(conf.ml,0)} ml servono <strong>${pezzi} pezzi</strong> (${camp} campate).</div>`;
 }
 function notaPalo(){
-  const g=lunghezzaPalo(conf), v=legname(conf.montanteForma,conf.montanteDiam);
-  const s=pezzoDa(g.tot*100);
-  if(!v) return `<div class="avviso">Nessun palo Ø${conf.montanteDiam} di questa forma a listino.</div>`;
-  const cu = s.cmPerPezzo/100*(Number(v.costo)||0);
+  const g=lunghezzaPalo(conf);
+  const a=articolo("Montanti", conf.montanteForma, conf.montanteDiam, g.tot*100);
+  if(!a) return `<div class="avviso">Nessun montante Ø${conf.montanteDiam} di questa forma a catalogo.</div>`;
+  const corto = Number(a.lung) < g.tot*100;
   return `<div class="info">
     <strong>Montante:</strong> ${num(g.hF*100,0)} cm fuori terra${g.interro>0? " + "+num(g.interro*100,0)+" cm interrati" : " (su staffa, nessuna parte interrata)"}
-    = <strong>${num(g.tot*100,0)} cm a pezzo</strong>.<br>
-    Si ricava dalla barra da <strong>${s.lung} cm</strong>${s.per>1? " ("+s.per+" montanti per barra)":""}${s.sfrido>0? ", scarto "+num(s.sfrido,0)+" cm":", senza scarto"} —
-    consumo ${num(s.cmPerPezzo,0)} cm × ${num(v.costo)} €/ml = <strong>${eur(cu)}</strong> a montante.
+    = <strong>${num(g.tot*100,0)} cm necessari</strong>.<br>
+    Articolo a catalogo: <strong>${esc(a.cod)}</strong> — ${esc(a.des)}${a.costo? " · "+num(a.costo)+" €/pz" : " · <span style='color:var(--err)'>prezzo da inserire</span>"}.
+    ${corto? "<br><span style='color:var(--err)'>Attenzione: l'articolo più lungo a catalogo è di "+a.lung+" cm, inferiore alla misura necessaria.</span>":""}
   </div>`;
 }
 function anteprima(){
@@ -1293,7 +1382,8 @@ function anteprima(){
         <div><div class="muted">Imponibile</div><strong class="mono">${eur(r.imponibile)}</strong></div>
         <div><div class="muted">Al metro</div><strong class="mono">${eur(r.alMetro)}</strong></div>
       </div>
-      ${r.mancanti.length? `<div class="avviso">Mancano a listino: ${esc(r.mancanti.join(", "))}</div>`:""}
+      ${r.mancanti.length? `<div class="avviso">Mancano a catalogo: ${esc(r.mancanti.join(", "))}</div>`:""}
+      ${r.senzaPrezzo.length? `<div class="avviso">${r.senzaPrezzo.length} ${r.senzaPrezzo.length===1?"articolo senza prezzo":"articoli senza prezzo"} a listino</div>`:""}
     </div></div>`;
 }
 async function salvaComeStandard(){
@@ -1409,6 +1499,8 @@ function renderDocumento(){
   const el=document.getElementById("v-doc");
   const r=calcola(conf), L=r.layout, g=r.geo;
   const cm=r.sc.corrimano, co=r.sc.correnti, mo=r.sc.montante;
+  /* i numeri sul disegno devono corrispondere alla legenda stampata sotto */
+  const vociDis=[]; const svgDis = disegna(conf,{voci:vociDis});
   /* Elenco per il cliente: SOLO i componenti forniti con le loro quantità.
      Nessuna lavorazione (selle, fori, tagli, incastri): sono lavorazioni interne
      e non vanno esposte in offerta. */
@@ -1477,7 +1569,10 @@ function renderDocumento(){
       sviluppo di ${num(conf.ml,0)} metri lineari, ${r.campate} campate e ${r.montanti} montanti,
       altezza fuori terra ${num(g.hF*100,0)} cm.</p>
 
-    <div class="doc-dis">${disegna(conf,{})}</div>
+    <div class="doc-dis">${svgDis}</div>
+    <ol class="doc-legenda">
+      ${vociDis.map(v=>`<li><span class="nn">${v.n}</span><span class="tt">${esc(v.nome)}${v.dett? `<em>${esc(v.dett)}</em>`:""}</span></li>`).join("")}
+    </ol>
 
     <h2 class="doc-sez">Materiale fornito</h2>
     <ul class="doc-list">${carat.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
@@ -1632,11 +1727,10 @@ function renderListino(){
     ${par("margineMat","Margine materiali %")}${par("marginePosa","Margine posa %")}
     ${par("provvigione","Provvigione %")}
     ${par("iva","IVA %")}${par("interroMurato","Interro palo murato cm")}${par("interroInfisso","Interro palo infisso cm")}
-    <div><label>Lunghezze standard barre (cm)</label>
-      <input value="${esc(param.lunghezzeStd)}" onchange="param.lunghezzeStd=this.value;salvaParam();renderListino()"></div>
+
   </div>
   <p class="muted" style="margin:12px 0 0">Prezzo = costo ÷ (1 − margine) ÷ (1 − provvigione). Con staffa a bicchiere o a fittone il palo è lungo quanto l'altezza fuori terra.<br>
-  Il legname si preventiva a metro lineare: ogni pezzo viene ricavato dalla barra standard più conveniente tra ${esc(param.lunghezzeStd)} cm, con lo scarto già a carico del preventivo.</p></div>` : ""}`;
+  Montanti, corrimano, traverse e stecche sono <strong>articoli finiti a catalogo</strong>: l'app sceglie da sola la misura che copre la quota richiesta.</p></div>` : ""}`;
 
   if(prodotto==="casette"){
     h+=`<div class="card"><div class="eyebrow">Parametri casette</div><div class="riga c4">
@@ -1672,7 +1766,7 @@ function renderListino(){
         <td><input type="number" step="1" class="mono" style="text-align:right" value="${v.diam||0}" onchange="modLis(${i},'diam',Number(this.value)||0)"></td>
         <td><input type="number" step="5" class="mono" style="text-align:right" value="${v.lung||0}" onchange="modLis(${i},'lung',Number(this.value)||0)"></td>
         <td><select onchange="modLis(${i},'um',this.value)">${["pz","ml","mq","h"].map(u=>`<option ${v.um===u?"selected":""}>${u}</option>`).join("")}</select></td>
-        <td><input type="number" step="0.01" class="mono" style="text-align:right" value="${v.costo}" onchange="modLis(${i},'costo',Number(this.value)||0)"></td>
+        <td><input type="number" step="0.01" class="mono${Number(v.costo)?"":" senza-prezzo"}" style="text-align:right" value="${v.costo}" onchange="modLis(${i},'costo',Number(this.value)||0)"></td>
         <td><button class="btn btn-d" style="padding:5px 10px;font-size:12px" onclick="eliminaVoce(${i})">×</button></td></tr>`;
     });
     h+=`</tbody></table></div></div>`;
