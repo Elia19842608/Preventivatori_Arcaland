@@ -19,15 +19,15 @@
 body{margin:0;background:var(--bg);color:var(--testo);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
 h1,h2,h3,h4{font-family:"Barlow Condensed","Inter",sans-serif;letter-spacing:.02em}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
-header{background:linear-gradient(135deg,var(--blu-900),var(--blu-700));color:#fff;padding:0 24px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(11,58,99,.18)}
+#testata{background:linear-gradient(135deg,var(--blu-900),var(--blu-700));color:#fff;padding:0 24px;position:sticky;top:0;z-index:120;box-shadow:0 2px 12px rgba(11,58,99,.18)}
 .head-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:28px;min-height:64px;flex-wrap:wrap}
 .brand{display:flex;align-items:baseline;gap:10px}
 .brand .mark{font-family:"Barlow Condensed";font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.08em}
 .brand .sub{font-size:12px;text-transform:uppercase;letter-spacing:.16em;opacity:.75}
-nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
-nav button{background:transparent;border:0;color:#fff;opacity:.72;cursor:pointer;font-family:"Barlow Condensed";font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-radius:6px;transition:.15s}
-nav button:hover{opacity:1;background:rgba(255,255,255,.1)}
-nav button.on{opacity:1;background:rgba(255,255,255,.18)}
+#testata nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+#testata nav button{background:transparent;border:0;color:#fff;opacity:.72;cursor:pointer;font-family:"Barlow Condensed";font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-radius:6px;transition:.15s}
+#testata nav button:hover{opacity:1;background:rgba(255,255,255,.1)}
+#testata nav button.on{opacity:1;background:rgba(255,255,255,.18)}
 main{max-width:1240px;margin:0 auto;padding:28px 24px 80px}
 .card{background:#fff;border:1px solid var(--linea);border-radius:10px;padding:22px}
 .card + .card{margin-top:18px}
@@ -89,7 +89,7 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
 /* ---------- documento di offerta ---------- */
 .doc-barra{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .foglio{background:#fff;border:1px solid var(--linea);border-radius:6px;padding:42px 46px 36px;max-width:860px;margin:0 auto;color:#1B242C;font-size:13.5px;line-height:1.55}
-.doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;
+.doc-head{position:static;display:flex;justify-content:space-between;align-items:flex-start;gap:32px;
   border-bottom:2px solid var(--blu-700);padding-bottom:16px;flex-wrap:wrap;background:#fff}
 .doc-logo{flex:1 1 300px;min-width:0}
 .doc-logo .logo-uff{display:block;width:260px;max-width:100%;height:auto}
@@ -123,6 +123,9 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
 .doc-tab tfoot td{border-bottom:0;padding:6px 10px;font-weight:600;color:var(--blu-900)}
 .doc-tab tfoot tr:first-child td{border-top:2px solid var(--linea);padding-top:10px}
 .doc-tab tfoot tr.tot td{background:var(--blu-900);color:#fff;font-size:15px}
+.doc-tab tfoot tr.alml td{background:#F2F7FB;color:var(--blu-900);border-top:2px solid var(--linea)}
+.doc-tab tfoot tr.alml + tr td{border-top:0;padding-top:6px}
+.doc-tab tfoot tr.alml td.num{font-family:"IBM Plex Mono";font-size:14px}
 .doc-tab tfoot tr.tot td.num{font-family:"Barlow Condensed";font-size:22px;font-weight:700}
 .doc-tab .num{text-align:right;font-family:"IBM Plex Mono";white-space:nowrap}
 .doc-min{font-size:11.5px;color:var(--testo-2);margin:8px 0 0}
@@ -135,7 +138,7 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
 .su-carta{border:0;border-radius:0;padding:26px 28px;max-width:none;font-size:12.5px}
 .su-carta .doc-dis{margin-bottom:14px}
 @media print{
-  header,nav,.doc-barra{display:none!important}
+  #testata,.doc-barra{display:none!important}
   body{background:#fff}
   main{padding:0;max-width:none}
   .foglio{border:0;border-radius:0;padding:0;max-width:none}
@@ -242,7 +245,7 @@ input.senza-prezzo{background:#FFF6F5;border-color:#E6C3C0;color:var(--err)}
 .foglio-cas .pfoot{margin-top:auto}
 .foglio-cas .pfoot-mod{margin-top:3px;font-size:7pt;color:#93A0AB;letter-spacing:.06em}
 .foglio-cas .pg{display:flex;flex-direction:column}
-.cas-head-2{display:flex;justify-content:space-between;align-items:center;gap:20px;
+.cas-head-2{position:static;display:flex;justify-content:space-between;align-items:center;gap:20px;
   padding-bottom:10px;margin-bottom:6px;border-bottom:1px solid var(--blu-700)}
 .cas-logo-2{width:170px;max-width:45%;height:auto;display:block}
 .cas-rif-2{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:9.5pt;color:#5A6773}
@@ -290,7 +293,7 @@ table.distinta td.cod{color:var(--testo-2);font-size:12.5px;white-space:nowrap}
 table.distinta td.um{color:var(--testo-2);font-size:12.5px}
 table.distinta em.nota{display:block;font-style:normal;font-size:11.5px;color:var(--testo-2);margin-top:1px}
 table.distinta tfoot td{border-top:2px solid var(--linea);border-bottom:0;font-weight:600;color:var(--blu-900);padding-top:10px}
-@media print{header,nav,.steps,.nav-wz,.salva{display:none!important}.riepilogo{grid-template-columns:1fr}}
+@media print{#testata,.steps,.nav-wz,.salva{display:none!important}.riepilogo{grid-template-columns:1fr}}
 
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--testo-2);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--linea);white-space:nowrap}
@@ -1668,7 +1671,8 @@ function renderDocumento(){
     <h1 class="doc-tit">Preventivo per ${r.posa? "fornitura e posa in opera" : "sola fornitura"} di staccionata in legno</h1>
     <p class="doc-ogg"><strong>Oggetto:</strong> staccionata modello ${esc(L.nome.toLowerCase())}${conf._nome? " «"+esc(conf._nome)+"»":""},
       sviluppo di ${num(conf.ml,0)} metri lineari, ${r.campate} campate e ${r.montanti} montanti,
-      altezza fuori terra ${num(g.hF*100,0)} cm.</p>
+      altezza fuori terra ${num(g.hF*100,0)} cm.<br>
+      <strong>Prezzo al metro lineare: ${eur(r.alMetro)}</strong> imponibile.</p>
 
     <div class="doc-dis">${svgDis}</div>
     <ol class="doc-legenda">
@@ -1698,12 +1702,13 @@ function renderDocumento(){
       <thead><tr><th>Descrizione</th><th class="num">Quantità</th><th class="num">Importo</th></tr></thead>
       <tbody>${voci.map(v=>`<tr><td>${esc(v.d)}</td><td class="num">${esc(v.q)}</td><td class="num">${eur(v.p)}</td></tr>`).join("")}</tbody>
       <tfoot>
+        <tr class="alml"><td colspan="2">Prezzo al metro lineare, imponibile</td><td class="num">${eur(r.alMetro)}</td></tr>
         <tr><td colspan="2">Imponibile</td><td class="num">${eur(r.imponibile)}</td></tr>
         <tr><td colspan="2">IVA ${param.iva}%</td><td class="num">${eur(r.iva)}</td></tr>
         <tr class="tot"><td colspan="2">Totale offerta</td><td class="num">${eur(r.totale)}</td></tr>
       </tfoot>
     </table>
-    <p class="doc-min">Prezzo unitario ${eur(r.alMetro)} al metro lineare, imponibile.</p>
+    <p class="doc-min">Sviluppo ${num(conf.ml,0)} metri lineari · ${r.campate} campate · ${r.montanti} montanti.</p>
 
     <h2 class="doc-sez">Condizioni</h2>
     <table class="doc-cond"><tbody>
@@ -1777,6 +1782,15 @@ async function preparaFoglio(sel){
   return clone;
 }
 
+/* html2canvas disegna solo le immagini già decodificate: aspetto il logo */
+function attendiImmagini(nodo){
+  const img = [...nodo.querySelectorAll("img")];
+  return Promise.all(img.map(i=>{
+    if(i.complete && i.naturalWidth>0) return Promise.resolve();
+    return new Promise(ok=>{ i.onload=ok; i.onerror=ok; setTimeout(ok,3000); });
+  }));
+}
+
 async function scaricaPdf(sel, nomeFile){
   const b=document.getElementById(sel? "btn-pdf-cas":"btn-pdf");
   if(typeof html2pdf==="undefined"){ toast("Generatore PDF non disponibile, uso la stampa"); stampaDoc(); return; }
@@ -1786,6 +1800,7 @@ async function scaricaPdf(sel, nomeFile){
     const invisibile=document.createElement("div");
     invisibile.style.cssText="position:fixed;left:-10000px;top:0;width:800px;background:#fff";
     invisibile.appendChild(clone); document.body.appendChild(invisibile);
+    await attendiImmagini(clone);
     const nome=((nomeFile||("Preventivo "+((conf&&conf.numOfferta)||"staccionata")+(conf&&conf.cliente? " "+conf.cliente:"")))
       .replace(/[\/\\:*?"<>|]/g,"-"))+".pdf";
     await html2pdf().set({
