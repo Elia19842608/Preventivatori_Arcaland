@@ -135,7 +135,24 @@ fieldset legend{font-family:"Barlow Condensed";font-size:19px;font-weight:600;te
 .doc-firme{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:38px}
 .doc-firme .et{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--testo-2)}
 .doc-firme .riga-firma{border-bottom:1px solid #9AA6B0;height:44px}
-.su-carta{border:0;border-radius:0;padding:26px 28px;max-width:none;font-size:12.5px}
+.su-carta{border:0;border-radius:0;padding:0;max-width:none;font-size:12.5px}
+.su-carta .pg-doc{padding:22px 26px}
+.su-carta .pg-2{margin-top:0;padding-top:22px;border-top:0}
+.su-carta .doc-logo .logo-uff{width:210px}
+.su-carta .doc-cliente{margin:14px 0 4px}
+.su-carta .doc-tit{font-size:20px;margin:14px 0 5px}
+.su-carta .doc-ogg{margin-bottom:10px;font-size:12px}
+.su-carta .doc-dis{margin-bottom:8px;padding:4px}
+.su-carta .doc-sez{font-size:15px;margin:12px 0 6px}
+.su-carta .doc-list li{margin-bottom:2px;font-size:12px}
+.su-carta .doc-legenda{padding:8px 10px;gap:5px 14px;margin-top:6px}
+.su-carta .doc-legenda .tt{font-size:11px}
+.su-carta .doc-legenda em{font-size:10px}
+.su-carta .doc-piede{margin-top:14px;padding-top:8px}
+.su-carta .doc-firme{margin-top:22px}
+.su-carta .doc-firme .riga-firma{height:34px}
+.su-carta .doc-tab td{padding:7px 10px}
+.su-carta .doc-cond td{padding:6px 10px}
 .su-carta .doc-dis{margin-bottom:14px}
 @media print{
   #testata,.doc-barra{display:none!important}
@@ -1791,26 +1808,58 @@ function attendiImmagini(nodo){
   }));
 }
 
+/* Adatta il foglio al formato A4 prima di generare il PDF.
+   L'altezza utile di una pagina, in pixel del clone, vale
+   larghezza × (altezza utile mm / larghezza utile mm).
+   Se una pagina sfora, allargo il clone: html2pdf lo riduce alla larghezza
+   della pagina, quindi tutto rimpicciolisce e il contenuto rientra.        */
+function adattaPagine(contenitore, clone, margini){
+  const [mt,mr,mb,ml] = margini;
+  const rapporto = (297-mt-mb) / (210-ml-mr);
+  const pagine = [...clone.querySelectorAll(".pg-doc, .foglio-cas .pg")];
+  if(!pagine.length) return {larghezza:800, altezzaPagina:800*rapporto};
+
+  let larghezza = 800;
+  for(const w of [800, 870, 940, 1010, 1090, 1170, 1260]){
+    larghezza = w;
+    contenitore.style.width = w+"px";
+    pagine.forEach(p=>{ p.style.height="auto"; });
+    const limite = w*rapporto - 6;          // 6 px di margine di sicurezza
+    const sfora = pagine.some(p=>p.scrollHeight > limite);
+    if(!sfora) break;
+  }
+  const altezzaPagina = larghezza*rapporto;
+  /* altezza fissa: il piè di pagina va in fondo al foglio e la pagina
+     successiva parte pulita, senza code di contenuto */
+  pagine.forEach(p=>{
+    p.style.height = altezzaPagina+"px";
+    p.style.overflow = "hidden";
+  });
+  return {larghezza, altezzaPagina};
+}
+
 async function scaricaPdf(sel, nomeFile){
   const b=document.getElementById(sel? "btn-pdf-cas":"btn-pdf");
   if(typeof html2pdf==="undefined"){ toast("Generatore PDF non disponibile, uso la stampa"); stampaDoc(); return; }
   if(b){ b.disabled=true; b.textContent="Preparo il PDF…"; }
   try{
+    const margini=[12,10,12,10];
     const clone=await preparaFoglio(sel);
     const invisibile=document.createElement("div");
     invisibile.style.cssText="position:fixed;left:-10000px;top:0;width:800px;background:#fff";
     invisibile.appendChild(clone); document.body.appendChild(invisibile);
     await attendiImmagini(clone);
+    adattaPagine(invisibile, clone, margini);
     const nome=((nomeFile||("Preventivo "+((conf&&conf.numOfferta)||"staccionata")+(conf&&conf.cliente? " "+conf.cliente:"")))
       .replace(/[\/\\:*?"<>|]/g,"-"))+".pdf";
     await html2pdf().set({
-      margin:[12,10,12,10], filename:nome,
+      margin:margini, filename:nome,
       image:{type:"jpeg", quality:0.96},
       html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
       jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
       pagebreak:{mode:["css","legacy"],
         before:[".pg-2",".pg-cas-2",".pg-cas-3"],
-        avoid:[".doc-tab",".doc-cond",".doc-firme",".doc-dis",
+        avoid:[".doc-tab",".doc-cond",".doc-firme",".doc-dis",".doc-legenda",
                ".foglio-cas table.voci",".foglio-cas table.tt",".foglio-cas .firme",
                ".foglio-cas .foto-wrap",".foglio-cas table.dati"]}
     }).from(clone).save();
