@@ -219,6 +219,8 @@ input.senza-prezzo{background:#FFF6F5;border-color:#E6C3C0;color:var(--err)}
 .chip.chip-ko.sel{opacity:1;background:var(--err);border-color:var(--err);color:#fff}
 /* ---------- documento staccionate: pagine fisse ---------- */
 .pg-doc{display:flex;flex-direction:column;min-height:0}
+.pg-doc > .doc-head{flex:0 0 auto}
+.pg-doc > .doc-piede{flex:0 0 auto;margin-top:auto}
 .pg-doc .doc-piede{margin-top:auto}
 .pg-2{margin-top:26px;padding-top:26px;border-top:2px dashed #C9D6E2}
 .doc-head-2{align-items:center;padding-bottom:10px;border-bottom-width:1px}
@@ -262,6 +264,8 @@ input.senza-prezzo{background:#FFF6F5;border-color:#E6C3C0;color:var(--err)}
 .foglio-cas .pfoot{margin-top:auto}
 .foglio-cas .pfoot-mod{margin-top:3px;font-size:7pt;color:#93A0AB;letter-spacing:.06em}
 .foglio-cas .pg{display:flex;flex-direction:column}
+.foglio-cas .pg > .pfoot{flex:0 0 auto;margin-top:auto}
+.foglio-cas .pg > .lett,.foglio-cas .pg > .cas-head-2{flex:0 0 auto}
 .cas-head-2{position:static;display:flex;justify-content:space-between;align-items:center;gap:20px;
   padding-bottom:10px;margin-bottom:6px;border-bottom:1px solid var(--blu-700)}
 .cas-logo-2{width:170px;max-width:45%;height:auto;display:block}
@@ -1808,64 +1812,75 @@ function attendiImmagini(nodo){
   }));
 }
 
-/* Adatta il foglio al formato A4 prima di generare il PDF.
-   L'altezza utile di una pagina, in pixel del clone, vale
-   larghezza × (altezza utile mm / larghezza utile mm).
-   Se una pagina sfora, allargo il clone: html2pdf lo riduce alla larghezza
-   della pagina, quindi tutto rimpicciolisce e il contenuto rientra.        */
-function adattaPagine(contenitore, clone, margini){
-  const [mt,mr,mb,ml] = margini;
-  const rapporto = (297-mt-mb) / (210-ml-mr);
-  const pagine = [...clone.querySelectorAll(".pg-doc, .foglio-cas .pg")];
-  if(!pagine.length) return {larghezza:800, altezzaPagina:800*rapporto};
+/* ---------------------------------------------------------------------
+   Generazione PDF pagina per pagina.
+   html2pdf renderebbe tutto il foglio in un'unica immagine lunga per poi
+   affettarla: basta un pixel di troppo e il piè di pagina scivola sul foglio
+   successivo. Qui ogni sezione .pg-doc / .pg viene resa come una pagina A4
+   a sé, quindi testata e piede restano sempre al loro posto.
+   --------------------------------------------------------------------- */
+const A4 = {mt:12, mr:10, mb:12, ml:10};
+const A4_UTILE = {w: 210-A4.ml-A4.mr, h: 297-A4.mt-A4.mb};
 
-  let larghezza = 800;
-  for(const w of [800, 870, 940, 1010, 1090, 1170, 1260]){
-    larghezza = w;
+/* sceglie la larghezza di lavoro con cui il contenuto di ogni pagina
+   sta dentro l'altezza utile: allargando, html2canvas riduce tutto in mm */
+function larghezzaAdatta(contenitore, pagine){
+  const rapporto = A4_UTILE.h / A4_UTILE.w;
+  let scelta = 800;
+  for(const w of [800, 870, 940, 1010, 1090, 1170, 1260, 1360]){
+    scelta = w;
     contenitore.style.width = w+"px";
-    pagine.forEach(p=>{ p.style.height="auto"; });
-    const limite = w*rapporto - 6;          // 6 px di margine di sicurezza
-    const sfora = pagine.some(p=>p.scrollHeight > limite);
-    if(!sfora) break;
+    pagine.forEach(p=>{ p.style.width=""; p.style.height="auto"; p.style.overflow=""; });
+    if(!pagine.some(p=>p.scrollHeight > w*rapporto - 10)) break;
   }
-  const altezzaPagina = larghezza*rapporto;
-  /* altezza fissa: il piè di pagina va in fondo al foglio e la pagina
-     successiva parte pulita, senza code di contenuto */
-  pagine.forEach(p=>{
-    p.style.height = altezzaPagina+"px";
-    p.style.overflow = "hidden";
-  });
-  return {larghezza, altezzaPagina};
+  return scelta;
 }
 
 async function scaricaPdf(sel, nomeFile){
   const b=document.getElementById(sel? "btn-pdf-cas":"btn-pdf");
   if(typeof html2pdf==="undefined"){ toast("Generatore PDF non disponibile, uso la stampa"); stampaDoc(); return; }
   if(b){ b.disabled=true; b.textContent="Preparo il PDF…"; }
+  let invisibile=null;
   try{
-    const margini=[12,10,12,10];
     const clone=await preparaFoglio(sel);
-    const invisibile=document.createElement("div");
-    invisibile.style.cssText="position:fixed;left:-10000px;top:0;width:800px;background:#fff";
+    invisibile=document.createElement("div");
+    invisibile.style.cssText="position:fixed;left:-10000px;top:0;width:800px;background:#fff;z-index:-1";
     invisibile.appendChild(clone); document.body.appendChild(invisibile);
     await attendiImmagini(clone);
-    adattaPagine(invisibile, clone, margini);
+
     const nome=((nomeFile||("Preventivo "+((conf&&conf.numOfferta)||"staccionata")+(conf&&conf.cliente? " "+conf.cliente:"")))
       .replace(/[\/\\:*?"<>|]/g,"-"))+".pdf";
-    await html2pdf().set({
-      margin:margini, filename:nome,
-      image:{type:"jpeg", quality:0.96},
-      html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
-      jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
-      pagebreak:{mode:["css","legacy"],
-        before:[".pg-2",".pg-cas-2",".pg-cas-3"],
-        avoid:[".doc-tab",".doc-cond",".doc-firme",".doc-dis",".doc-legenda",
-               ".foglio-cas table.voci",".foglio-cas table.tt",".foglio-cas .firme",
-               ".foglio-cas .foto-wrap",".foglio-cas table.dati"]}
-    }).from(clone).save();
-    invisibile.remove();
+
+    const pagine=[...clone.querySelectorAll(".pg-doc, .foglio-cas .pg")];
+    const jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+
+    if(pagine.length && typeof html2canvas==="function" && jsPDFctor){
+      const W = larghezzaAdatta(invisibile, pagine);
+      const H = Math.round(W * A4_UTILE.h / A4_UTILE.w);
+      /* altezza fissa: il piede si appoggia in fondo grazie a margin-top:auto */
+      pagine.forEach(p=>{ p.style.width=W+"px"; p.style.height=H+"px"; p.style.overflow="hidden"; });
+
+      const pdf = new jsPDFctor({unit:"mm", format:"a4", orientation:"portrait"});
+      for(let i=0;i<pagine.length;i++){
+        const cv = await html2canvas(pagine[i], {scale:2, useCORS:true, backgroundColor:"#ffffff",
+          width:W, height:H, windowWidth:W});
+        if(i>0) pdf.addPage();
+        pdf.addImage(cv.toDataURL("image/jpeg",0.96), "JPEG", A4.ml, A4.mt, A4_UTILE.w, A4_UTILE.h);
+      }
+      pdf.save(nome);
+    } else {
+      /* ripiego: generatore classico */
+      await html2pdf().set({
+        margin:[A4.mt,A4.mr,A4.mb,A4.ml], filename:nome,
+        image:{type:"jpeg", quality:0.96},
+        html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
+        jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
+        pagebreak:{mode:["css","legacy"], before:[".pg-2",".pg-cas-2",".pg-cas-3"]}
+      }).from(clone).save();
+    }
     toast("PDF salvato");
   }catch(e){ toast("Non riesco a generare il PDF: "+e.message); }
+  if(invisibile) invisibile.remove();
   if(b){ b.disabled=false; b.textContent="Scarica il PDF"; }
 }
 
